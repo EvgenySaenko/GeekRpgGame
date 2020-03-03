@@ -23,7 +23,7 @@ public class Hero {
                 0.0f,0,0,100,100,false,false);
     }
 
-    public void update(float dt){
+    public void update(float dt,Vector2 pointerPosition){
         if (Gdx.input.isKeyPressed(Input.Keys.A)){
             position.x -= speed * dt;
         }
@@ -35,6 +35,20 @@ public class Hero {
         }
         if (Gdx.input.isKeyPressed(Input.Keys.W)){
             position.y += speed * dt;
+        }
+        if (Gdx.input.isTouched()){
+            if (pointerPosition.x > position.x){
+                position.x += speed * dt;
+            }
+            if (pointerPosition.x < position.x ){
+                position.x -= speed * dt;
+            }
+            if (pointerPosition.y > position.y){
+                position.y += speed * dt;
+            }
+            if (pointerPosition.y < position.y){
+                position.y -= speed * dt;
+            }
         }
     }
 }

@@ -46,7 +46,7 @@ public class GeekRpgGame extends ApplicationAdapter {
 
 	public void update(float dt) {
 		rt -= dt * 160;
-		hero.update(dt);
+		hero.update(dt,this.pointerPosition);
 		if (Gdx.input.justTouched()){
 			pointerPosition.set(Gdx.input.getX(),720.0f - Gdx.input.getY());
 		}
