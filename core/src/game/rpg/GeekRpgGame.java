@@ -2,6 +2,7 @@ package game.rpg;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,78 +12,32 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
-public class GeekRpgGame extends ApplicationAdapter {
+public class GeekRpgGame extends Game {
+
     private SpriteBatch batch;
-    private BitmapFont font32;
-    private TextureAtlas atlas;
-    private TextureRegion textureGrass;
-    private Hero hero;
-    private Apple apple;
-    static Projectile[] projectiles;
-    private Vector2 dst;
+    // Домашнее задание:
+    // - Разбор кода и пишите какие вопросы возникли
+    // - Если здоровье монстра падает до 0, перекидываем его в другую точку
+    // и залечиваем полностью, герою даем монетку (от 3 до 10)
+    // - * Если монстр подошел близко к герою, то раз в 0.5 сек он должен
+    // наносить герою 1 урона
 
     @Override
-    public void create() {//создание объекта
-        this.batch = new SpriteBatch();
-        this.atlas = new TextureAtlas("game.pack");
-        this.hero = new Hero(atlas);
-        this.textureGrass = atlas.findRegion("grass");
-        this.font32 = new BitmapFont(Gdx.files.internal("font32.fnt"));
-        this.apple = new Apple(atlas);//создаем яблоки
-        this.dst = new Vector2(0, 0);
-        this.projectiles = new Projectile[100];//создаем стрелы
-        for (int i = 0; i < projectiles.length; i++) {
-            projectiles[i] = new Projectile(atlas);
-        }
+    public void create() {
+        batch = new SpriteBatch();
+        ScreenManager.getInstance().init(this, batch);
+        ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.GAME);
     }
-
     @Override
     public void render() {
-        float dt = Gdx.graphics.getDeltaTime();
-        update(dt);
-        Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        batch.begin();
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 9; j++) {
-                batch.draw(textureGrass, i * 80, j * 80);
-            }
-        }
-        hero.render(batch);
-        hero.renderGUI(batch, font32);
-
-        for (int i = 0; i < projectiles.length; i++) {//рисуем стрелы
-            projectiles[i].render(batch);
-        }
-        apple.render(batch);
-        batch.end();
+        float dt = Gdx.graphics.getDeltaTime();
+        getScreen().render(dt);
     }
-
-    public void update(float dt) {
-        hero.update(dt);
-        apple.update();
-
-        for (int i = 0; i < projectiles.length; i++) {
-            if (projectiles[i].isActive()) {
-                projectiles[i].update(dt);
-                System.out.println(projectiles[i].getPosition());
-                if (apple.getCircle().contains(projectiles[i].getPosition())) {
-                    System.out.println("Good!!");
-                    apple.deactivate();
-                    apple.setup();
-                    projectiles[i].deactivate();
-                }
-                //dst.set(apple.getPosition()).dst(projectiles[i].getPosition());
-
-                System.out.println("dst - " + dst);
-
-            }
-        }
-    }
-
 
     @Override
-    public void dispose() {//освобождение ресурсов
+    public void dispose() {
         batch.dispose();
     }
 }
