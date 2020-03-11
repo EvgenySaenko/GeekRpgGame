@@ -1,4 +1,4 @@
-package game.rpg;
+package game.rpg.logic.utils;
 
 //тот класс который помечен данным интерфесом мы его можем класть в пул объектов
 public interface Poolable {

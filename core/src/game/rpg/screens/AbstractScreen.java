@@ -1,4 +1,4 @@
-package game.rpg;
+package game.rpg.screens;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
