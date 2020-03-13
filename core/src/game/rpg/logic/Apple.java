@@ -1,4 +1,4 @@
-package game.rpg;
+package game.rpg.logic;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;

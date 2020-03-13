@@ -1,4 +1,4 @@
-package game.rpg;
+package game.rpg.logic.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ public abstract class ObjectPool<T extends Poolable> {
         if (freeList.size() == 0) {//если при запросе свободный список => пуст
             freeList.add(newObject());//добавляем в него новый элемент
         }
-        //удаляет с конца freeлиста последний элемент => записывает ссылку в temp
+        //удаляет с конца free листа последний элемент => записывает ссылку в temp
         T temp = freeList.remove(freeList.size() - 1);
         activeList.add(temp);//этот объект перекидываем в активный список
         return temp;//и возвращаем ссылку добавленного объекта для настройки
