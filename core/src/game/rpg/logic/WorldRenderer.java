@@ -31,21 +31,21 @@ public class WorldRenderer {//отрисовщик
             drawables[i].clear();//очищаем список объектов
         }
 
-        for (int i = 0; i < gc.getWeaponController().getActiveList().size(); i++) {
+        for (int i = 0; i < gc.getWeaponController().getActiveList().size(); i++) {//добавляем оружие
             Weapon w = gc.getWeaponController().getActiveList().get(i);
-            drawables[w.getCellY()].add(w);//так же со снарядами
+            drawables[w.getCellY()].add(w);
         }
 
         drawables[gc.getHero().getCellY()].add(gc.getHero());//смотрим где находится герой и в эту линию добавляем его
 
-        for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {
+        for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {//монстров
             Monster m = gc.getMonstersController().getActiveList().get(i);
             drawables[m.getCellY()].add(m);
         }
 
-        for (int i = 0; i < gc.getProjectilesController().getActiveList().size(); i++) {
+        for (int i = 0; i < gc.getProjectilesController().getActiveList().size(); i++) {//стрелы
             Projectile p = gc.getProjectilesController().getActiveList().get(i);
-            drawables[p.getCellY()].add(p);//так же со снарядами
+            drawables[p.getCellY()].add(p);
         }
 
         //после как мы расположили все объекты можем рисовать
@@ -66,6 +66,7 @@ public class WorldRenderer {//отрисовщик
             }
         }
         gc.getHero().renderGUI(batch, font32);
+
         batch.end();//заканчиваем отрисовку
     }
 }

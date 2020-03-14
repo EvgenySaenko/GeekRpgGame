@@ -24,7 +24,8 @@ public class Weapon implements MapElement,Poolable {
     private int damage;
     private float speedAttack;
     Map<Integer, TextureRegion> listweapon;
-    private int slot;
+    private  TextureRegion slot;
+
 
     public GameCharacter getOwner() {
         return owner;
@@ -47,6 +48,9 @@ public class Weapon implements MapElement,Poolable {
     public Weapon(GameController gc) {
         this.listweapon = new HashMap<>();
         this.sword = Assets.getInstance().getAtlas().findRegion("sword32");
+        this.bow = Assets.getInstance().getAtlas().findRegion("bow32");
+        listweapon.put(1,sword);
+        listweapon.put(2,bow);
         this.attackRadius = attackRadius;
         this.damage = damage;
         this.speedAttack = speedAttack;
@@ -54,28 +58,9 @@ public class Weapon implements MapElement,Poolable {
         this.active = false;
     }
 
-    public void changeType(GameCharacter.Type type){
-        switch (type) {
-            //BAREHANDED, MELEE, RANGED
-            case BAREHANDED:
-                this.damage = MathUtils.random(6, 10);
-                this.speedAttack = 1.0f;
-                this.attackRadius = 30.0f;
-                break;
-            case MELEE:
-                this.damage = MathUtils.random(15, 20);
-                this.speedAttack = 0.8f;
-                this.attackRadius = 30.0f;
-                break;
-            case  RANGED:
-                this.damage = MathUtils.random(5, 8);
-                this.speedAttack = 0.3f;
-                this.attackRadius = 100.0f;
-                break;
-        }
-    }
 
-    public void create(float x, float y) {
+    public void create(float x, float y, int random) {
+        this.slot = listweapon.get(random);//достаем оружие по ключу
         this.position.set(x,y);
         this.active = true;
     }
@@ -86,11 +71,11 @@ public class Weapon implements MapElement,Poolable {
 
     @Override
     public void render(SpriteBatch batch, BitmapFont font){
-        batch.draw(sword,position.x - 16,position.y -16);
+        batch.draw(slot,position.x - 16,position.y -16);//рисуем
     }
 
     public void update(float dt) {
-        if (gc.isUp()){
+        if (!active){//если не активна то деактивируем
             deactivate();
         }
     }

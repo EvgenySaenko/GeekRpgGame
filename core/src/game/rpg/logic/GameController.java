@@ -1,5 +1,7 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -14,6 +16,7 @@ public class GameController {
     private Map map;
     private Hero hero;
     private WeaponController weaponController;
+    private Weapon weapon;
     private Vector2 tmp, tmp2;
     private boolean up;
 
@@ -46,11 +49,12 @@ public class GameController {
         return up;
     }
 
+
     public GameController() {
         this.allCharacters = new ArrayList<>();
         this.projectilesController = new ProjectilesController();
         this.hero = new Hero(this);
-        this.weaponController= new WeaponController(this);
+        this.weaponController = new WeaponController(this);
         this.map = new Map();
         this.monstersController = new MonstersController(this, 5);
         this.tmp = new Vector2(0, 0);
@@ -61,10 +65,11 @@ public class GameController {
         allCharacters.clear();//очищаем всех персонажей
         allCharacters.add(hero);//добавили героя
         allCharacters.addAll(monstersController.getActiveList());//добавили всех монстров
+        weaponController.update(dt);
         hero.update(dt);
         monstersController.update(dt);
         checkCollisions();
-        checkCollisionsCharactersVsWeapon();
+        checkCollisionsCharactersVsWeapon();//проверяем поднимет ли персонаж оружие
         projectilesController.update(dt);
     }
 
@@ -86,62 +91,78 @@ public class GameController {
             }
         }
     }
-    //столкновение иконки оружия и монстров
-    public void checkCollisionsCharactersVsWeapon(){
-        for (int i = 1; i < monstersController.getActiveList().size(); i++) {
+
+    //столкновение иконки оружия и персонажей
+    public void checkCollisionsCharactersVsWeapon() {
+        for (int i = 0; i < monstersController.getActiveList().size(); i++) {
             Monster m = monstersController.getActiveList().get(i);
-            for (int j = 1; j < weaponController.getActiveList().size(); j++) {
+            for (int j = 0; j < weaponController.getActiveList().size(); j++) {
                 Weapon w = weaponController.getActiveList().get(j);
-                if (w.getPosition().dst(m.getPosition()) < 16){
+                if (w.getPosition().dst(m.getPosition()) < 25 & w.listweapon.containsKey(1)) {//от иконки до монстра
                     w.deactivate();
-                    up = true;
+                    m.changeTypeSpecifications(GameCharacter.Type.MELEE);
+                    System.out.println("monster - "+ m.getTypeWeapon());
                 }
-                if (w.getPosition().dst(hero.getPosition()) < 16){
+                if (w.getPosition().dst(m.getPosition()) < 25 & w.listweapon.containsKey(2)) {
                     w.deactivate();
-                    up = true;
+                    m.changeTypeSpecifications(GameCharacter.Type.RANGED);
+                    System.out.println("monster - "+ m.getTypeWeapon());
                 }
+
+                if (w.getPosition().dst(hero.getPosition()) < 25 & w.listweapon.containsKey(1)) {//от иконки до героя
+                    hero.changeTypeSpecifications(GameCharacter.Type.MELEE);
+                    w.deactivate();
+                    System.out.println("hero - "+ hero.getTypeWeapon());
+                }
+
+                if (w.getPosition().dst(hero.getPosition()) < 25 & w.listweapon.containsKey(2)) {
+                    hero.changeTypeSpecifications(GameCharacter.Type.RANGED);
+                    w.deactivate();
+                    System.out.println("hero - "+ hero.getTypeWeapon());
+                }
+
             }
         }
     }
 
 
-    public void checkCollisions() {
-        for (int i = 0; i < monstersController.getActiveList().size(); i++) {//перебераем активных монстров
-            Monster m = monstersController.getActiveList().get(i);
-            collideUnits(hero, m);//проверяем столкновение с героем
-        }
-        for (int i = 0; i < monstersController.getActiveList().size() - 1; i++) {
-            Monster m = monstersController.getActiveList().get(i);
-            for (int j = i + 1; j < monstersController.getActiveList().size(); j++) {
-                Monster m2 = monstersController.getActiveList().get(j);
-                collideUnits(m, m2);//проверяем столкновение монстра с монстром
+        public void checkCollisions () {
+            for (int i = 0; i < monstersController.getActiveList().size(); i++) {//перебераем активных монстров
+                Monster m = monstersController.getActiveList().get(i);
+                collideUnits(hero, m);//проверяем столкновение с героем
             }
-        }
-
-
-        for (int i = 0; i < projectilesController.getActiveList().size(); i++) {
-            Projectile p = projectilesController.getActiveList().get(i);//получили снаряд
-            if (!map.isAirPassable(p.getCellX(), p.getCellY())) {//если не проходима земля деактивация
-                p.deactivate();
-                continue;
-            }
-            //если позиция от стрелы до героя меньше 24 и владельцем стрелы не является сам герой
-            if (p.getPosition().dst(hero.getPosition()) < 24 && p.getOwner() != hero) {
-                p.deactivate();//стрела деактивируется
-                hero.takeDamage(p.getOwner(), 1);//то владелец стрелы получает урон
-            }
-            for (int j = 0; j < monstersController.getActiveList().size(); j++) {
-                Monster m = monstersController.getActiveList().get(j);
-                if (p.getOwner() == m) {//если владельцем стрелы является данный монстр
-                    continue;//не делаем проверок
+            for (int i = 0; i < monstersController.getActiveList().size() - 1; i++) {
+                Monster m = monstersController.getActiveList().get(i);
+                for (int j = i + 1; j < monstersController.getActiveList().size(); j++) {
+                    Monster m2 = monstersController.getActiveList().get(j);
+                    collideUnits(m, m2);//проверяем столкновение монстра с монстром
                 }
-                if (p.getPosition().dst(m.getPosition()) < 24) {
+            }
+
+
+            for (int i = 0; i < projectilesController.getActiveList().size(); i++) {
+                Projectile p = projectilesController.getActiveList().get(i);//получили снаряд
+                if (!map.isAirPassable(p.getCellX(), p.getCellY())) {//если не проходима земля деактивация
                     p.deactivate();
-                    if (m.takeDamage(p.getOwner(), 1)) {
-                        hero.addCoins(MathUtils.random(1, 10));
+                    continue;
+                }
+                //если позиция от стрелы до героя меньше 24 и владельцем стрелы не является сам герой
+                if (p.getPosition().dst(hero.getPosition()) < 24 && p.getOwner() != hero) {
+                    p.deactivate();//стрела деактивируется
+                    hero.takeDamage(p.getOwner(), 1);//то владелец стрелы получает урон
+                }
+                for (int j = 0; j < monstersController.getActiveList().size(); j++) {
+                    Monster m = monstersController.getActiveList().get(j);
+                    if (p.getOwner() == m) {//если владельцем стрелы является данный монстр
+                        continue;//не делаем проверок
+                    }
+                    if (p.getPosition().dst(m.getPosition()) < 24) {
+                        p.deactivate();
+                        if (m.takeDamage(p.getOwner(), 1)) {
+                            hero.addCoins(MathUtils.random(1, 10));
+                        }
                     }
                 }
             }
         }
     }
-}

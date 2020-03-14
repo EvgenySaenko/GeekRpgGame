@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import game.rpg.screens.utils.Assets;
 
 
@@ -12,6 +13,7 @@ public class Hero extends GameCharacter {
     private TextureRegion texturePointer;
     private int coins;
     private StringBuilder strBuilder;
+    private StringBuilder stringDamage;
     private boolean activePointer;
 
     public void addCoins(int amount) {
@@ -19,14 +21,16 @@ public class Hero extends GameCharacter {
     }
 
     public Hero(GameController gc) {
-        super(gc, 50, 100.0f);
+        super(gc, 100, 100.0f);
         this.texture = Assets.getInstance().getAtlas().findRegion("knight");
         this.texturePointer = Assets.getInstance().getAtlas().findRegion("pointer32");
         this.activePointer = false;
         this.changePosition(100.0f, 100.0f);
         this.dst.set(position);
         this.strBuilder = new StringBuilder();
+        this.stringDamage = new StringBuilder();
     }
+
 
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {
@@ -43,7 +47,14 @@ public class Hero extends GameCharacter {
         strBuilder.append("Class: ").append("Knight").append("\n");
         strBuilder.append("HP: ").append(hp).append(" / ").append(hpMax).append("\n");
         strBuilder.append("Coins: ").append(coins).append("\n");
+        strBuilder.append("Type: ").append(getTypeWeapon()).append("\n");
         font.draw(batch, strBuilder, 10, 710);
+    }
+
+    public void renderDamage(SpriteBatch batch, BitmapFont font){
+        strBuilder.setLength(0);
+        strBuilder.append(whatDamage).append("\n");
+        font.draw(batch, strBuilder, position.x - 16, position.y + 70);
     }
 
     @Override
@@ -65,7 +76,7 @@ public class Hero extends GameCharacter {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {//если нажали левую кнопку
             for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {//перебираем всех актив монстров
                 Monster m = gc.getMonstersController().getActiveList().get(i);//берем монстра
-                //если расстояние от монстра к нашей мишки меньше 30 пикс => то мы считаем что тыкнули в монстра
+                //если расстояние от монстра к нашей мышки меньше 30 пикс => то мы считаем что тыкнули в монстра
                 if (m.getPosition().dst(Gdx.input.getX(), 720.0f - Gdx.input.getY()) < 30.0f) {
                     state = State.ATTACK;//переходим в состояние атаки
                     target = m;//мишенью является монстр

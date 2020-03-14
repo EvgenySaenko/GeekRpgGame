@@ -1,5 +1,7 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
@@ -24,7 +26,7 @@ public abstract class GameCharacter implements MapElement {
     protected TextureRegion texture;
     protected TextureRegion textureHp;
 
-    protected Type type;
+    protected Type typeWeapon;
     protected State state;
     protected float stateTimer;
 
@@ -37,6 +39,7 @@ public abstract class GameCharacter implements MapElement {
     protected Vector2 tmp2;
 
     protected Circle area;
+    private StringBuilder strBuilder;
 
     protected float lifetime;
     protected float visionRadius;
@@ -45,7 +48,7 @@ public abstract class GameCharacter implements MapElement {
     protected float attackTime;
     protected float speedAttack;
     protected float speed;
-    protected int hp, hpMax;
+    protected int hp, hpMax,whatDamage;
     protected boolean alive;
 
     public int getCellX() {
@@ -73,6 +76,10 @@ public abstract class GameCharacter implements MapElement {
         return area;
     }
 
+    public Type getTypeWeapon() {
+        return typeWeapon;
+    }
+
     public boolean isAlive() {
         return hp > 0;
     }
@@ -80,6 +87,7 @@ public abstract class GameCharacter implements MapElement {
     public GameCharacter(GameController gc, int hpMax, float speed) {
         this.gc = gc;
         this.textureHp = Assets.getInstance().getAtlas().findRegion("hp");
+        this.strBuilder = new StringBuilder();
         this.tmp = new Vector2(0.0f, 0.0f);
         this.tmp2 = new Vector2(0.0f, 0.0f);
         this.dst = new Vector2(0.0f, 0.0f);
@@ -94,10 +102,36 @@ public abstract class GameCharacter implements MapElement {
         this.state = State.IDLE;
         this.stateTimer = 1.0f;
         this.target = null;
-        this.type = Type.BAREHANDED;
-        this.weapon = null;
         this.alive = true;
+        this.whatDamage = 0;
+        this.typeWeapon = Type.BAREHANDED;//кога любой перс создается (он безоружный)
     }
+
+    public void changeTypeSpecifications(Type type){
+        switch (type) {
+            //BAREHANDED, MELEE, RANGED
+            case BAREHANDED://статы безоружного
+                this.typeWeapon = Type.BAREHANDED;
+                this.damage = MathUtils.random(6, 10);
+                this.speedAttack = 1.0f;
+                this.attackRadius = 30.0f;
+                break;
+            case MELEE://статы с мечом
+                this.typeWeapon = Type.MELEE;
+                this.damage = MathUtils.random(15, 20);
+                this.speedAttack = 0.8f;
+                this.attackRadius = 30.0f;
+                break;
+            case RANGED://статы с луком
+                this.typeWeapon = Type.RANGED;
+                this.damage = MathUtils.random(3, 6);
+                this.speedAttack = 0.2f;
+                this.attackRadius = 150.0f;
+                this.speed = 150.0f;
+                break;
+        }
+    }
+
     //общее поведение персонажей
     public void update(float dt) {
         lifetime += dt;
@@ -111,12 +145,16 @@ public abstract class GameCharacter implements MapElement {
         //если состояние атаки и позиция до цели меньше радиуса атаки
         if (state == State.ATTACK && this.position.dst(target.getPosition()) < attackRadius) {
             attackTime += dt;//то атактайм накапливается
-            if (attackTime > speedAttack) {//раз в 0.3 секунды мы атакуем
-                attackTime = 0.0f;
-                if (type == Type.MELEE||type == Type.BAREHANDED) {//если мы находимся в мили варианте
+            if (typeWeapon == Type.MELEE||typeWeapon == Type.BAREHANDED) {//если мы находимся в мили варианте
+                if (attackTime > speedAttack) {//раз в 0... секунды мы атакуем
+                    attackTime = 0.0f;
                     target.takeDamage(this, this.damage);//и цель получает урон
+                    this.whatDamage = this.damage;
                 }
-                if (type == Type.RANGED) {//если в рэндж то кидает снаряд
+            }
+            if (typeWeapon == Type.RANGED) {//если в рэндж то кидает снаряд
+                if (attackTime > speedAttack) {//раз в 0.... секунды мы атакуем
+                    attackTime = 0.0f;
                     gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y);
                 }
             }
@@ -164,7 +202,7 @@ public abstract class GameCharacter implements MapElement {
     }
 
     public void onDeath() {
-        gc.getWeaponController().getActiveElement().create(position.x, position.y);//выпадает оружие
+        gc.getWeaponController().getActiveElement().create(position.x, position.y,MathUtils.random(1,2));//выпадает оружие
         for (int i = 0; i < gc.getAllCharacters().size(); i++) {//проходимя повсем персонажам
             GameCharacter gameCharacter = gc.getAllCharacters().get(i);
             if (gameCharacter.target == this) {//если кто то охотился но его убили
