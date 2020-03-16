@@ -9,18 +9,23 @@ import game.rpg.logic.utils.Poolable;
 
 public class Projectile implements Poolable, MapElement {
     private TextureRegion textureRegion;
+    private GameCharacter owner;
     private Vector2 position;
     private Vector2 velocity;
     private boolean active;
 
+    public GameCharacter getOwner() {
+        return owner;
+    }
+
     @Override
     public int getCellX() {
-        return (int)position.x / 80;
+        return (int) position.x / 80;
     }
 
     @Override
     public int getCellY() {
-        return (int)position.y / 80;
+        return (int) position.y / 80;
     }
 
     public Vector2 getPosition() {
@@ -39,7 +44,8 @@ public class Projectile implements Poolable, MapElement {
         this.active = false;
     }
 
-    public void setup(TextureRegion textureRegion, float x, float y, float targetX, float targetY) {
+    public void setup(GameCharacter owner, TextureRegion textureRegion, float x, float y, float targetX, float targetY) {
+        this.owner = owner;
         this.textureRegion = textureRegion;
         this.position.set(x, y);
         this.velocity.set(targetX, targetY).sub(x, y).nor().scl(800.0f);

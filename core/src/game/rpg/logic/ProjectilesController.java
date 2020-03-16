@@ -16,15 +16,9 @@ public class ProjectilesController extends ObjectPool<Projectile> {
     public ProjectilesController() {
         this.projectileTextureRegion = Assets.getInstance().getAtlas().findRegion("arrow");
     }
-    //запустить стрелу
-    public void setup(float x, float y, float targetX, float targetY) {
-        getActiveElement().setup(projectileTextureRegion, x, y, targetX, targetY);
-    }
 
-    public void render(SpriteBatch batch) {
-        for (int i = 0; i < getActiveList().size(); i++) {
-            getActiveList().get(i).render(batch, null);
-        }
+    public void setup(GameCharacter owner, float x, float y, float targetX, float targetY) {
+        getActiveElement().setup(owner, projectileTextureRegion, x, y, targetX, targetY);
     }
 
     public void update(float dt) {

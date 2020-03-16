@@ -19,16 +19,19 @@ public class Map {
     }
 
     public boolean isGroundPassable(int cellX, int cellY) {
+        if (cellX < 0 || cellY < 0 || cellX >= MAP_CELLS_WIDTH || cellY >= MAP_CELLS_HEIGHT) {
+            return false;
+        }
         return data[cellX][cellY] == 0;
     }
 
     public boolean isGroundPassable(Vector2 position) {
-        return data[(int)(position.x / 80)][(int)(position.y / 80)] == 0;
+        return isGroundPassable((int) (position.x / 80), (int) (position.y / 80));
     }
 
     public Map() {
         this.data = new byte[MAP_CELLS_WIDTH][MAP_CELLS_HEIGHT];
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             data[MathUtils.random(15)][MathUtils.random(8)] = 1;
         }
         this.grassTexture = Assets.getInstance().getAtlas().findRegion("grass");
@@ -45,3 +48,4 @@ public class Map {
         }
     }
 }
+

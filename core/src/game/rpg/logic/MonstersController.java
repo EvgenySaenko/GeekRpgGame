@@ -1,35 +1,30 @@
 package game.rpg.logic;
-
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import game.rpg.logic.utils.ObjectPool;
-import game.rpg.screens.utils.Assets;
 
-public class MonstersController extends ObjectPool<GameCharacter> {
-    GameController gc;
-    private TextureRegion monstersTextureRegion;
-
+public class MonstersController extends ObjectPool<Monster> {
+    private GameController gc;
+    private float innerTimer;
+    private float spawnPeriod;
 
     @Override
-    protected GameCharacter newObject() {
+    protected Monster newObject() {
         return new Monster(gc);
     }
 
-    public MonstersController (){
-        this.monstersTextureRegion = Assets.getInstance().getAtlas().findRegion("knight");
-    }
-    //создать и настроить поведение монстра
-    public void setup(float x, float y) {
-        getActiveElement().setup(monstersTextureRegion, 800, 300);
-    }
-    //проходим по списку активных элементов и рисуем
-    public void render(SpriteBatch batch) {
-        for (int i = 0; i < getActiveList().size(); i++) {
-            getActiveList().get(i).render(batch, null);
+    public MonstersController(GameController gc, int initialCount) {
+        this.gc = gc;
+        this.spawnPeriod = 30.0f;//период создания нового монстра
+        for (int i = 0; i < initialCount; i++) {
+            getActiveElement().generateMe();
         }
     }
-    //обновляем только активных монстров
+
     public void update(float dt) {
+        innerTimer += dt;
+        if (innerTimer > spawnPeriod) {//раз в 30 сек
+            innerTimer = 0.0f;
+            getActiveElement().generateMe();//генерим нового монстра
+        }
         for (int i = 0; i < getActiveList().size(); i++) {
             getActiveList().get(i).update(dt);
         }
