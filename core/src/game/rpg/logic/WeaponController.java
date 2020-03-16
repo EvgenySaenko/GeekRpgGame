@@ -1,26 +1,44 @@
 package game.rpg.logic;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import game.rpg.logic.utils.ObjectPool;
-import game.rpg.screens.utils.Assets;
 
 public class WeaponController extends ObjectPool<Weapon> {
     private GameController gc;
 
     @Override
-    public Weapon newObject() {
-        return new Weapon(gc);
+    protected Weapon newObject() {
+        return new Weapon();
     }
 
     public WeaponController(GameController gc) {
         this.gc = gc;
     }
 
-    public void update(float dt) {
-        for (int i = 0; i < getActiveList().size(); i++) {
-            getActiveList().get(i).update(dt);
+    public void setup(float x, float y) {
+        Weapon w = getActiveElement();//создается иконка оружия
+        int maxDamage = MathUtils.random(3,4);
+        for (int i = 0; i < 10; i++) {
+            if (MathUtils.random(100) < 50 - i * 5) {
+                maxDamage++;
+            }
         }
-        checkPool();
+        Weapon.Type type = Weapon.Type.MELEE;
+        String title = "Sword";
+        float attackRadius = 60.0f;
+        float attackSpeed = 0.4f;
+        if (MathUtils.random(100) < 40) {
+            title = "Bow";
+            type = Weapon.Type.RANGED;
+            attackRadius = 160.0f;
+            attackSpeed = 0.5f;
+        }
+        w.setup(type, title, MathUtils.random(1, 4), maxDamage, 0.4f, attackRadius);
+        w.setPosition(x, y);
     }
 
+    public void update(float dt) {
+        checkPool();
+    }
 }
+

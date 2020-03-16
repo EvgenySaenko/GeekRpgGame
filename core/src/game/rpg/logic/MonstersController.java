@@ -18,6 +18,7 @@ public class MonstersController extends ObjectPool<Monster> {
             getActiveElement().generateMe();
         }
     }
+    
 
     public void update(float dt) {
         innerTimer += dt;

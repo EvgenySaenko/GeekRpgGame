@@ -14,11 +14,13 @@ public class WorldRenderer {//отрисовщик
     private GameController gc;
     private SpriteBatch batch;
     private BitmapFont font32;
+    private BitmapFont font10;
     private List<MapElement>[] drawables;//на какой полосе что находится
 
     public WorldRenderer(GameController gameController, SpriteBatch batch) {
         this.gc = gameController;
         this.font32 = Assets.getInstance().getAssetManager().get("fonts/font32.ttf");
+        this.font10 = Assets.getInstance().getAssetManager().get("fonts/font10.ttf");
         this.batch = batch;
         this.drawables = new ArrayList[Map.MAP_CELLS_HEIGHT];
         for (int i = 0; i < drawables.length; i++) {//инициализируем лист
@@ -35,6 +37,12 @@ public class WorldRenderer {//отрисовщик
             Weapon w = gc.getWeaponController().getActiveList().get(i);
             drawables[w.getCellY()].add(w);
         }
+
+        for (int i = 0; i < gc.getLootsController().getActiveList().size(); i++) {//добавляем оружие
+            Loot loot = gc.getLootsController().getActiveList().get(i);
+            drawables[loot.getCellY()].add(loot);
+        }
+
 
         drawables[gc.getHero().getCellY()].add(gc.getHero());//смотрим где находится герой и в эту линию добавляем его
 
@@ -66,6 +74,7 @@ public class WorldRenderer {//отрисовщик
             }
         }
         gc.getHero().renderGUI(batch, font32);
+        gc.getHero().renderDamage(batch,font10);
 
         batch.end();//заканчиваем отрисовку
     }
