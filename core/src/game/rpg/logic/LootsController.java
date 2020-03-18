@@ -18,14 +18,17 @@ public class LootsController extends ObjectPool<Loot> {
     public void setup(float x, float y) {
         Loot loot = getActiveElement();//создается иконка оружия
         Loot.Type type = Loot.Type.GOLD;
-//        if (MathUtils.random(100) < 40) {
-//            type = Loot.Type.POTION;
-//        }
+        if (MathUtils.random(100) < 50) {
+            type = Loot.Type.POTION;
+        }
         loot.setup(type);
         loot.setPosition(x, y);
     }
 
     public void update(float dt) {
+        for (int i = 0; i < getActiveList().size(); i++) {
+            getActiveList().get(i).update(dt);
+        }
         checkPool();
     }
 }

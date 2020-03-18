@@ -38,7 +38,7 @@ public class WorldRenderer {//отрисовщик
             drawables[w.getCellY()].add(w);
         }
 
-        for (int i = 0; i < gc.getLootsController().getActiveList().size(); i++) {//добавляем оружие
+        for (int i = 0; i < gc.getLootsController().getActiveList().size(); i++) {//добавляем лут
             Loot loot = gc.getLootsController().getActiveList().get(i);
             drawables[loot.getCellY()].add(loot);
         }
@@ -48,7 +48,7 @@ public class WorldRenderer {//отрисовщик
 
         for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {//монстров
             Monster m = gc.getMonstersController().getActiveList().get(i);
-            drawables[m.getCellY()].add(m);
+            drawables[m.getCellY()].add(m);//смотрим где монтср и добавляем монстра
         }
 
         for (int i = 0; i < gc.getProjectilesController().getActiveList().size(); i++) {//стрелы
@@ -73,9 +73,12 @@ public class WorldRenderer {//отрисовщик
                 gc.getMap().renderUpper(batch, x, y);//рисуем саму карту
             }
         }
+        for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {//монстров
+            Monster m = gc.getMonstersController().getActiveList().get(i);
+            m.renderDamage(batch,font10);//отрисовка хп-цифр над монстром
+        }
         gc.getHero().renderGUI(batch, font32);
-        gc.getHero().renderDamage(batch,font10);
-
+        gc.getHero().renderDamage(batch,font10);//отрисовка хп-цифр над героем
         batch.end();//заканчиваем отрисовку
     }
 }

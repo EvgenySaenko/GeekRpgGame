@@ -1,5 +1,8 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -25,6 +28,7 @@ public abstract class GameCharacter implements MapElement {
 
     protected TextureRegion[][] textures;
     protected TextureRegion textureHp;
+    protected Texture textureHitPoint;
 
     protected State state;
     protected float stateTimer;
@@ -53,6 +57,9 @@ public abstract class GameCharacter implements MapElement {
     protected float speed;
     protected int hp, hpMax, whatDamage;
     protected boolean alive;
+
+
+    protected Color color;
 
     public int getCellX() {
         return (int) position.x / 80;
@@ -115,16 +122,29 @@ public abstract class GameCharacter implements MapElement {
         this.hpMax = hpMax;
         this.hp = this.hpMax;
         this.speed = speed;//когда персонаж создается он получает скорость
-        //this.damage = MathUtils.random(6,10);
-        //this.speedAttack = 1.0f;
-        //this.attackRadius = 30.0f;
         this.state = State.IDLE;
         this.stateTimer = 1.0f;
         this.timePerFrame = 0.2f;
         this.target = null;
         this.alive = true;
         this.whatDamage = 0;
+        this.color = new Color(0.0f,1.0f,0.0f,50);
+
+        Pixmap pixmap = new Pixmap(60, 20, Pixmap.Format.RGB888);
+        pixmap.setColor(color);
+        pixmap.fill();
+        this.textureHitPoint = new Texture(pixmap);
     }
+
+    public void changeColor(){//изменение цвета полоски здоровья
+        float red = (float) (this.hpMax - this.hp) / hpMax;
+        float green = (float) hp /this.hpMax;
+        float blue = 0;
+        color.set(red,green,blue,50);
+        System.out.println( hp  +" " +hpMax + "red ="+ hp/hpMax);
+        System.out.println("color change"+"\n"+ "red "+ red+ "\n "+"gren " + green+"\n "+ "blue "+" "+ blue);
+    }
+
 
     public void renderDamage(SpriteBatch batch, BitmapFont font){//заготовка к отлетающему хп
         if (hp < hpMax) {

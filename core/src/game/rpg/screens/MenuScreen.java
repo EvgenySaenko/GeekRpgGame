@@ -2,10 +2,12 @@ package game.rpg.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -15,6 +17,7 @@ import game.rpg.screens.utils.Assets;
 public class MenuScreen extends AbstractScreen {
     private Stage stage;
     private BitmapFont font72;
+    Texture menuImages;
 
 
     public MenuScreen(SpriteBatch batch) {
@@ -23,6 +26,7 @@ public class MenuScreen extends AbstractScreen {
 
     @Override
     public void show() {
+        this.menuImages = new Texture("menu.png");
         this.font72 = Assets.getInstance().getAssetManager().get("fonts/font72.ttf");
         createGUI();
     }
@@ -32,7 +36,8 @@ public class MenuScreen extends AbstractScreen {
         Gdx.gl.glClearColor(0, 0, 0.0f, 1);//очищаем экран
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();//начинаем отрисовку
-        font72.draw(batch,"Geek Rpg Game 2020",0,500,1280, Align.center,false);
+        batch.draw(menuImages,0,0);
+        font72.draw(batch,"KNIGHT",860,490);
         batch.end();
         stage.draw();
     }
@@ -42,15 +47,17 @@ public class MenuScreen extends AbstractScreen {
         Gdx.input.setInputProcessor(stage);//обработка ввода для стейджа - чтобы граф интерфейс реагировал на мышку и кнопки
         Skin skin = new Skin();//то как выглядит наш интерфейс, кнопки поля итд
         skin.addRegions(Assets.getInstance().getAtlas());//скин мы хотим использовать текстуру которая в атласе
-        BitmapFont font14 = Assets.getInstance().getAssetManager().get("fonts/font52.ttf");//берем шрифт
+        BitmapFont font14 = Assets.getInstance().getAssetManager().get("fonts/font32.ttf");//берем шрифт
 
         TextButton.TextButtonStyle menuBtnStyle = new TextButton.TextButtonStyle(//подготавливаем стиль заранее
-                skin.getDrawable("button"), null, null, font14);
+                skin.getDrawable("button284x86"), null, null, font14);
 
         TextButton btnNewGame = new TextButton("New Game", menuBtnStyle);//создаем кнопку с текстом -кладем стиль для кнопки
-        btnNewGame.setPosition(400, 250);
+        btnNewGame.setPosition(850, 340);
+        TextButton btnOptions = new TextButton("Options", menuBtnStyle);//создаем кнопку с текстом -кладем стиль для кнопки
+        btnOptions.setPosition(850, 250);
         TextButton btnExitGame = new TextButton("Exit Game", menuBtnStyle);
-        btnExitGame.setPosition(400, 80);
+        btnExitGame.setPosition(850, 160);
 
         btnNewGame.addListener(new ClickListener() {
             @Override
@@ -67,6 +74,7 @@ public class MenuScreen extends AbstractScreen {
         });
 
         stage.addActor(btnNewGame);//добавим кнопки на сцену
+        stage.addActor(btnOptions);
         stage.addActor(btnExitGame);
         skin.dispose();
     }

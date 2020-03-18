@@ -17,7 +17,7 @@ public class WeaponController extends ObjectPool<Weapon> {
 
     public void setup(float x, float y) {
         Weapon w = getActiveElement();//создается иконка оружия
-        int maxDamage = MathUtils.random(3,4);
+        int maxDamage = MathUtils.random(18,23);
         for (int i = 0; i < 10; i++) {
             if (MathUtils.random(100) < 50 - i * 5) {
                 maxDamage++;
@@ -31,9 +31,9 @@ public class WeaponController extends ObjectPool<Weapon> {
             title = "Bow";
             type = Weapon.Type.RANGED;
             attackRadius = 160.0f;
-            attackSpeed = 0.5f;
+            attackSpeed = 0.6f;
         }
-        w.setup(type, title, MathUtils.random(1, 4), maxDamage, 0.4f, attackRadius);
+        w.setup(type, title, MathUtils.random(10, 15), maxDamage, attackSpeed, attackRadius);
         w.setPosition(x, y);
     }
 

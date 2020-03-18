@@ -12,7 +12,6 @@ import game.rpg.screens.utils.Assets;
 
 
 public class Loot implements MapElement, Poolable, Consumable {
-    private GameController gc;
 
     public enum Type {
         GOLD, POTION
@@ -20,13 +19,15 @@ public class Loot implements MapElement, Poolable, Consumable {
     protected TextureRegion[][] lootGold;
     protected TextureRegion[][] lootPotion;
 
-    protected float walkTime;
     protected float timePerFrame;
+    protected float walkTime;
 
     private Type type;
     private String title;
     private Vector2 position;
     private boolean active;
+
+
 
     @Override
     public boolean isActive() {
@@ -51,19 +52,15 @@ public class Loot implements MapElement, Poolable, Consumable {
         return type;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     public void setPosition(float x, float y) {
         this.position.set(x, y);
     }
 
 
-
     public Loot() {
         this.position = new Vector2(0, 0);
-        this.timePerFrame = 0.2f;
+        this.timePerFrame = 0.15f;
+        this.type = null;
     }
 
     public void setup(Type type) {
@@ -78,28 +75,33 @@ public class Loot implements MapElement, Poolable, Consumable {
         this.title = title;
         this.active = true;
     }
-
     @Override
     public void consume(GameCharacter gameCharacter) {
         gameCharacter.setLoot(this);
         active = false;
     }
-
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {
-        TextureRegion texture = lootGold[0][getCurrentFrameIndex()];
-        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.5f, 0.5f, 0);
+        if (type == Type.GOLD) {
+            TextureRegion texture = lootGold[0][getCurrentFrameIndex(type)];
+            batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.6f, 0.6f, 0);
+        }
+        if (type == Type.POTION) {
+            TextureRegion texture = lootPotion[0][getCurrentFrameIndex(type)];
+            batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.8f, 0.8f, 0);
+        }
     }
     //метод возвращает индекс текстуры
-    public int getCurrentFrameIndex(){
-        return(int) (walkTime / timePerFrame) % lootGold[0].length;
+    public int getCurrentFrameIndex(Type type){
+        if (type == Type.GOLD) {
+            return (int) (walkTime / timePerFrame) % lootGold[0].length;
+        }else {
+            return (int) (walkTime / timePerFrame) % lootPotion[0].length;
+        }
     }
 
     public void update(float dt){
-        if (!active){
-            walkTime += dt;
-            System.out.println(walkTime);
-        }
+        walkTime += dt;
     }
 
 }
