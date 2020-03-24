@@ -19,9 +19,6 @@ public class Map {
     }
 
     public boolean isGroundPassable(int cellX, int cellY) {
-        if (cellX < 0 || cellY < 0 || cellX >= MAP_CELLS_WIDTH || cellY >= MAP_CELLS_HEIGHT) {
-            return false;
-        }
         return data[cellX][cellY] == 0;
     }
 
@@ -31,7 +28,7 @@ public class Map {
 
     public Map() {
         this.data = new byte[MAP_CELLS_WIDTH][MAP_CELLS_HEIGHT];
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             data[MathUtils.random(15)][MathUtils.random(8)] = 1;
         }
         this.grassTexture = Assets.getInstance().getAtlas().findRegion("grass");

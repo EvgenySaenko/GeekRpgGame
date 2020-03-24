@@ -8,18 +8,26 @@ import game.rpg.logic.utils.Poolable;
 import game.rpg.screens.utils.Assets;
 
 public class Monster extends GameCharacter implements Poolable {
+    private StringBuilder strBuilder;
     @Override
     public boolean isActive() {//если здоровье больше он активный
         return hp > 0;
     }
 
     public Monster(GameController gc) {
-        super(gc, 50, 100.0f);
-        this.texture = Assets.getInstance().getAtlas().findRegion("knight");
+        super(gc, 80, 100.0f);
+        this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("dwarf64")).split(64,64);
         this.changePosition(800.0f, 300.0f);
         this.dst.set(this.position);
+        this.strBuilder = new StringBuilder();
         this.visionRadius = 160.0f;
+        if (MathUtils.random(100) < 30){//рандомно выдаем оружие
+            this.weapon = Weapon.createSimpleMeleeWeapon();
+        }else {
+            this.weapon = Weapon.createSimpleRangedWeapon();
+        }
     }
+
 
     public void generateMe() {
         do {
@@ -31,14 +39,28 @@ public class Monster extends GameCharacter implements Poolable {
     @Override
     public void onDeath() {
         super.onDeath();
+        gc.getWeaponController().setup(position.x, position.y);
+        gc.getLootsController().setup(position.x,position.y);
     }
 
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {
-        batch.setColor(0.5f, 0.5f, 0.5f, 0.7f);
-        batch.draw(texture, position.x - 30, position.y - 30, 30, 30, 60, 60, 1, 1, 0);
-        batch.setColor(1, 1, 1, 1);
-        batch.draw(textureHp, position.x - 30, position.y + 30, 60 * ((float) hp / hpMax), 12);
+        TextureRegion currentRegion = textures[0][getCurrentFrameIndex()];
+        if (dst.x > position.x){
+            if (currentRegion.isFlipX()) {
+                currentRegion.flip(true, false);
+            }
+        }else {
+            if (!currentRegion.isFlipX()) {
+                currentRegion.flip(true, false);
+            }
+        }
+        batch.draw(currentRegion, position.x - 32, position.y - 32, 32, 32, 64, 64, 1.5f, 1.5f, 0);
+        if (this.position.dst(gc.getHero().getPosition()) < visionRadius){
+            batch.draw(textureHp, position.x - 30, position.y + 50, 60, 10);
+            batch.draw(textureHitPoint, position.x - 30, position.y + 50, 60 * ((float) hp / hpMax), 10);
+        }
+
     }
 
     public void update(float dt) {

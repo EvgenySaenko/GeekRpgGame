@@ -1,5 +1,6 @@
 package game.rpg.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import game.rpg.GeekRpgGame;
@@ -20,6 +21,7 @@ public class ScreenManager {//управляет всеми экранами п�
     private SpriteBatch batch;
     private LoadingScreen loadingScreen;
     private GameScreen gameScreen;//ссылка на все возможные экраны
+    private MenuScreen menuScreen;
     private Screen targetScreen;
 //    private Viewport viewport;
 //    private Camera camera;
@@ -48,6 +50,7 @@ public class ScreenManager {//управляет всеми экранами п�
 //        this.camera = new OrthographicCamera(WORLD_WIDTH, WORLD_HEIGHT);
 //        this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         this.gameScreen = new GameScreen(batch);
+        this.menuScreen = new MenuScreen(batch);
         this.loadingScreen = new LoadingScreen(batch);
     }
 
@@ -66,12 +69,17 @@ public class ScreenManager {//управляет всеми экранами п�
     public void changeScreen(ScreenType type) {
         Screen screen = game.getScreen();//смотрим на каком экране находились
         Assets.getInstance().clear();//счищаем текущие ресурсы, т.к переходим на другой экран
+        Gdx.input.setInputProcessor(null);//сбрасываем чтобы не обрабатываеть нажатия на кнопки меню
         if (screen != null) {//если мы находились не на пустом экране
             screen.dispose();//чистим объекты текущего экрана
         }
 //        resetCamera();
         game.setScreen(loadingScreen);//переходим на экран с полоской загрузки(при смене экрана)
         switch (type) {//просим сменить экран на
+            case MENU://если нам надо перейти на МЕНЮ экран
+                targetScreen = menuScreen;//то запоминаем что хотели перейти на меню экран
+                Assets.getInstance().loadAssets(ScreenType.MENU);//и начинаем грузить ресурсы для меню
+                break;
             case GAME://если нам надо перейти на ИГРОВОЙ экран
 //                game.setScreen(gameScreen);
                 targetScreen = gameScreen;//то запоминаем что хотели перейти на ИГРОВОЙ экран

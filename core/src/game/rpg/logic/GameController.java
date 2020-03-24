@@ -16,6 +16,7 @@ public class GameController {
     private Map map;
     private Hero hero;
     private WeaponController weaponController;
+    private LootsController lootsController;
     private Weapon weapon;
     private Vector2 tmp, tmp2;
     private boolean up;
@@ -45,6 +46,10 @@ public class GameController {
         return weaponController;
     }
 
+    public LootsController getLootsController() {
+        return lootsController;
+    }
+
     public boolean isUp() {
         return up;
     }
@@ -55,21 +60,23 @@ public class GameController {
         this.projectilesController = new ProjectilesController();
         this.hero = new Hero(this);
         this.weaponController = new WeaponController(this);
+        this.lootsController = new LootsController(this);
         this.map = new Map();
         this.monstersController = new MonstersController(this, 5);
         this.tmp = new Vector2(0, 0);
         this.tmp2 = new Vector2(0, 0);
+
     }
 
     public void update(float dt) {
         allCharacters.clear();//очищаем всех персонажей
         allCharacters.add(hero);//добавили героя
         allCharacters.addAll(monstersController.getActiveList());//добавили всех монстров
-        weaponController.update(dt);
         hero.update(dt);
         monstersController.update(dt);
+        weaponController.update(dt);
+        lootsController.update(dt);
         checkCollisions();
-        checkCollisionsCharactersVsWeapon();//проверяем поднимет ли персонаж оружие
         projectilesController.update(dt);
     }
 
@@ -92,39 +99,6 @@ public class GameController {
         }
     }
 
-    //столкновение иконки оружия и персонажей
-    public void checkCollisionsCharactersVsWeapon() {
-        for (int i = 0; i < monstersController.getActiveList().size(); i++) {
-            Monster m = monstersController.getActiveList().get(i);
-            for (int j = 0; j < weaponController.getActiveList().size(); j++) {
-                Weapon w = weaponController.getActiveList().get(j);
-                if (w.getPosition().dst(m.getPosition()) < 25 & w.listweapon.containsKey(1)) {//от иконки до монстра
-                    w.deactivate();
-                    m.changeTypeSpecifications(GameCharacter.Type.MELEE);
-                    System.out.println("monster - "+ m.getTypeWeapon());
-                }
-                if (w.getPosition().dst(m.getPosition()) < 25 & w.listweapon.containsKey(2)) {
-                    w.deactivate();
-                    m.changeTypeSpecifications(GameCharacter.Type.RANGED);
-                    System.out.println("monster - "+ m.getTypeWeapon());
-                }
-
-                if (w.getPosition().dst(hero.getPosition()) < 25 & w.listweapon.containsKey(1)) {//от иконки до героя
-                    hero.changeTypeSpecifications(GameCharacter.Type.MELEE);
-                    w.deactivate();
-                    System.out.println("hero - "+ hero.getTypeWeapon());
-                }
-
-                if (w.getPosition().dst(hero.getPosition()) < 25 & w.listweapon.containsKey(2)) {
-                    hero.changeTypeSpecifications(GameCharacter.Type.RANGED);
-                    w.deactivate();
-                    System.out.println("hero - "+ hero.getTypeWeapon());
-                }
-
-            }
-        }
-    }
-
 
         public void checkCollisions () {
             for (int i = 0; i < monstersController.getActiveList().size(); i++) {//перебераем активных монстров
@@ -139,6 +113,25 @@ public class GameController {
                 }
             }
 
+            for (int i = 0; i < weaponController.getActiveList().size(); i++) {
+                Weapon w = weaponController.getActiveList().get(i);
+                if (hero.getPosition().dst(w.getPosition()) < 20) {
+                    w.consume(hero);
+                }
+            }
+            for (int i = 0; i < lootsController.getActiveList().size(); i++) {//столкновения лута и героя
+                Loot loot = lootsController.getActiveList().get(i);
+                if (hero.getPosition().dst(loot.getPosition()) < 20) {
+                    loot.consume(hero);
+                    if (loot.getType() == Loot.Type.GOLD){//если тип лута золото начисляем золото
+                        hero.addCoins(MathUtils.random(3,6));
+                    }
+                    if (loot.getType() == Loot.Type.POTION){//если зелья, то  = hp++
+                        hero.addHp(hero.hpMax/3);
+                    }
+                }
+            }
+
 
             for (int i = 0; i < projectilesController.getActiveList().size(); i++) {
                 Projectile p = projectilesController.getActiveList().get(i);//получили снаряд
@@ -149,7 +142,7 @@ public class GameController {
                 //если позиция от стрелы до героя меньше 24 и владельцем стрелы не является сам герой
                 if (p.getPosition().dst(hero.getPosition()) < 24 && p.getOwner() != hero) {
                     p.deactivate();//стрела деактивируется
-                    hero.takeDamage(p.getOwner(), 1);//то владелец стрелы получает урон
+                    hero.takeDamage(p.getOwner(), p.getDamage());//то владелец стрелы получает урон
                 }
                 for (int j = 0; j < monstersController.getActiveList().size(); j++) {
                     Monster m = monstersController.getActiveList().get(j);
@@ -158,9 +151,7 @@ public class GameController {
                     }
                     if (p.getPosition().dst(m.getPosition()) < 24) {
                         p.deactivate();
-                        if (m.takeDamage(p.getOwner(), 1)) {
-                            hero.addCoins(MathUtils.random(1, 10));
-                        }
+                        m.takeDamage(p.getOwner(), p.getDamage());
                     }
                 }
             }

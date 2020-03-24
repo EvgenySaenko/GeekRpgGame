@@ -1,5 +1,8 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -16,17 +19,17 @@ public abstract class GameCharacter implements MapElement {
         IDLE, MOVE, ATTACK, PURSUIT, RETREAT
     }
 
-    public enum Type {
-        BAREHANDED, MELEE, RANGED
-    }
+    static final int WIDTH = 60;
+    static final int HEIGHT = 60;
     protected Weapon weapon;
+    protected Loot loot;
 
     protected GameController gc;
 
-    protected TextureRegion texture;
+    protected TextureRegion[][] textures;
     protected TextureRegion textureHp;
+    protected Texture textureHitPoint;
 
-    protected Type typeWeapon;
     protected State state;
     protected float stateTimer;
 
@@ -42,14 +45,21 @@ public abstract class GameCharacter implements MapElement {
     private StringBuilder strBuilder;
 
     protected float lifetime;
-    protected float visionRadius;
-    protected float attackRadius;
-    protected int damage;
     protected float attackTime;
-    protected float speedAttack;
+    protected float walkTime;
+    protected float timePerFrame;
+
+    protected float visionRadius;
+    //protected float attackRadius;
+    //protected int damage;
+
+    //protected float speedAttack;
     protected float speed;
-    protected int hp, hpMax,whatDamage;
+    protected int hp, hpMax, whatDamage;
     protected boolean alive;
+
+
+    protected Color color;
 
     public int getCellX() {
         return (int) position.x / 80;
@@ -61,7 +71,19 @@ public abstract class GameCharacter implements MapElement {
 
     public void changePosition(float x, float y) {
         position.set(x, y);
-        area.setPosition(x, y - 20);
+        if (position.x < 0.1f){
+            position.x = 0.1f;
+        }
+        if (position.y - 20 < 0.1f){
+            position.y = 20.1f;
+        }
+        if (position.x > Map.MAP_CELLS_WIDTH * 80 - 1){
+            position.x = Map.MAP_CELLS_WIDTH * 80 - 1;
+        }
+        if (position.y - 20 > Map.MAP_CELLS_HEIGHT* 80 - 1){
+            position.y = Map.MAP_CELLS_HEIGHT * 80 - 1 + 20;
+        }
+        area.setPosition(position.x, position.y - 20);
     }
 
     public void changePosition(Vector2 newPosition) {
@@ -76,12 +98,16 @@ public abstract class GameCharacter implements MapElement {
         return area;
     }
 
-    public Type getTypeWeapon() {
-        return typeWeapon;
-    }
-
     public boolean isAlive() {
         return hp > 0;
+    }
+
+    public void setWeapon(Weapon weapon) {
+        this.weapon = weapon;
+    }
+
+    public void setLoot(Loot loot) {
+        this.loot = loot;
     }
 
     public GameCharacter(GameController gc, int hpMax, float speed) {
@@ -96,40 +122,40 @@ public abstract class GameCharacter implements MapElement {
         this.hpMax = hpMax;
         this.hp = this.hpMax;
         this.speed = speed;//когда персонаж создается он получает скорость
-        this.damage = MathUtils.random(6,10);
-        this.speedAttack = 1.0f;
-        this.attackRadius = 30.0f;
         this.state = State.IDLE;
         this.stateTimer = 1.0f;
+        this.timePerFrame = 0.2f;
         this.target = null;
         this.alive = true;
         this.whatDamage = 0;
-        this.typeWeapon = Type.BAREHANDED;//кога любой перс создается (он безоружный)
+        this.color = new Color(0.0f,1.0f,0.0f,50);
+
+        Pixmap pixmap = new Pixmap(60, 20, Pixmap.Format.RGB888);
+        pixmap.setColor(color);
+        pixmap.fill();
+        this.textureHitPoint = new Texture(pixmap);
     }
 
-    public void changeTypeSpecifications(Type type){
-        switch (type) {
-            //BAREHANDED, MELEE, RANGED
-            case BAREHANDED://статы безоружного
-                this.typeWeapon = Type.BAREHANDED;
-                this.damage = MathUtils.random(6, 10);
-                this.speedAttack = 1.0f;
-                this.attackRadius = 30.0f;
-                break;
-            case MELEE://статы с мечом
-                this.typeWeapon = Type.MELEE;
-                this.damage = MathUtils.random(15, 20);
-                this.speedAttack = 0.8f;
-                this.attackRadius = 30.0f;
-                break;
-            case RANGED://статы с луком
-                this.typeWeapon = Type.RANGED;
-                this.damage = MathUtils.random(3, 6);
-                this.speedAttack = 0.2f;
-                this.attackRadius = 150.0f;
-                this.speed = 150.0f;
-                break;
+    public void changeColor(){//изменение цвета полоски здоровья
+        float red = (float) (this.hpMax - this.hp) / hpMax;
+        float green = (float) hp /this.hpMax;
+        float blue = 0;
+        color.set(red,green,blue,50);
+        System.out.println( hp  +" " +hpMax + "red ="+ hp/hpMax);
+        System.out.println("color change"+"\n"+ "red "+ red+ "\n "+"gren " + green+"\n "+ "blue "+" "+ blue);
+    }
+
+
+    public void renderDamage(SpriteBatch batch, BitmapFont font){//заготовка к отлетающему хп
+        if (hp < hpMax) {
+            strBuilder.setLength(0);
+            strBuilder.append(hp).append("\n");
+            font.draw(batch, strBuilder, position.x - 16, position.y + 60);
         }
+    }
+    //метод возвращает индекс текстуры
+    public int getCurrentFrameIndex(){
+        return(int) (walkTime / timePerFrame) % textures[0].length;
     }
 
     //общее поведение персонажей
@@ -139,47 +165,41 @@ public abstract class GameCharacter implements MapElement {
             dst.set(target.getPosition());//дст равна координатам нашей мишени
         }
         //если состояние двигаться или убегать или атаковать или от нас до цели расстояние на 5 пх меньше нашего радиуса атаки
-        if (state == State.MOVE || state == State.RETREAT || (state == State.ATTACK && this.position.dst(target.getPosition()) > attackRadius - 5)) {
+        if (state == State.MOVE || state == State.RETREAT || (state == State.ATTACK && this.position.dst(target.getPosition()) > weapon.getAttackRadius() - 5)) {
             moveToDst(dt);//то двигаемся к дст
         }
         //если состояние атаки и позиция до цели меньше радиуса атаки
-        if (state == State.ATTACK && this.position.dst(target.getPosition()) < attackRadius) {
+        if (state == State.ATTACK && this.position.dst(target.getPosition()) < weapon.getAttackRadius()) {
+            walkTime += dt;//если aтакуем персонаж шевелит ногами
             attackTime += dt;//то атактайм накапливается
-            if (typeWeapon == Type.MELEE||typeWeapon == Type.BAREHANDED) {//если мы находимся в мили варианте
-                if (attackTime > speedAttack) {//раз в 0... секунды мы атакуем
-                    attackTime = 0.0f;
-                    target.takeDamage(this, this.damage);//и цель получает урон
-                    this.whatDamage = this.damage;
+            if (attackTime > weapon.getSpeedAttack()) {//раз в 0... секунды мы атакуем
+                attackTime = 0.0f;
+                if (weapon.getType() == Weapon.Type.MELEE ) {//если мы находимся в мили
+                    target.takeDamage(this, this.whatDamage = weapon.generateDamage());//и цель получает урон
                 }
-            }
-            if (typeWeapon == Type.RANGED) {//если в рэндж то кидает снаряд
-                if (attackTime > speedAttack) {//раз в 0.... секунды мы атакуем
-                    attackTime = 0.0f;
-                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y);
+                if (weapon.getType() == Weapon.Type.RANGED && target != null) {//если в рэндж то кидает снаряд
+                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y,this.whatDamage = weapon.generateDamage());
                 }
             }
         }
-        area.setPosition(position.x, position.y - 20);
-
     }
 
     public void moveToDst(float dt) {
         tmp.set(dst).sub(position).nor().scl(speed);
         tmp2.set(position);
+        walkTime += dt;//если перемещаем персонаж шевелит ногами
         if (position.dst(dst) > speed * dt) {
-            position.mulAdd(tmp, dt);
+            changePosition(position.x + tmp.x * dt,position.y + tmp.y * dt);
         } else {
-            position.set(dst);//если добрались до точки то состояние меняем в IDLE и стоим на месте
+            changePosition(dst);//если добрались до точки то состояние меняем в IDLE и стоим на месте
             state = State.IDLE;
         }
         if (!gc.getMap().isGroundPassable(getCellX(), getCellY())) {
-            position.set(tmp2);
-            position.add(tmp.x * dt, 0);
+            changePosition(tmp2.x + tmp.x * dt,tmp2.y);
             if (!gc.getMap().isGroundPassable(getCellX(), getCellY())) {
-                position.set(tmp2);
-                position.add(0, tmp.y * dt);
+                changePosition(tmp2.x, tmp2.y + tmp.y * dt);
                 if (!gc.getMap().isGroundPassable(getCellX(), getCellY())) {
-                    position.set(tmp2);
+                    changePosition(tmp2);
                 }
             }
         }
@@ -187,7 +207,7 @@ public abstract class GameCharacter implements MapElement {
 
     public boolean takeDamage(GameCharacter attacker, int damage) {
         lastAttacker = attacker;//запоминаем последнего атакующего
-        hp -= this.damage;
+        hp -= this.weapon.generateDamage();
         if (hp <= 0) {
             onDeath();
             return true;
@@ -202,7 +222,6 @@ public abstract class GameCharacter implements MapElement {
     }
 
     public void onDeath() {
-        gc.getWeaponController().getActiveElement().create(position.x, position.y,MathUtils.random(1,2));//выпадает оружие
         for (int i = 0; i < gc.getAllCharacters().size(); i++) {//проходимя повсем персонажам
             GameCharacter gameCharacter = gc.getAllCharacters().get(i);
             if (gameCharacter.target == this) {//если кто то охотился но его убили
