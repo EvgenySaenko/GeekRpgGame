@@ -13,11 +13,7 @@ import game.rpg.screens.utils.Assets;
 
 public class Loot implements MapElement, Poolable, Consumable {
 
-    public enum Type {
-        GOLD, POTION
-    }
-    protected TextureRegion[][] lootGold;
-    protected TextureRegion[][] lootPotion;
+    protected TextureRegion[][] textures;
 
     protected float timePerFrame;
     protected float walkTime;
@@ -26,6 +22,15 @@ public class Loot implements MapElement, Poolable, Consumable {
     private String title;
     private Vector2 position;
     private boolean active;
+    private int index;
+
+    public enum Type {
+        POTION(0), GOLD(1);
+        int index;
+        Type(int index){
+            this.index = index;
+        }
+    }
 
 
 
@@ -40,12 +45,17 @@ public class Loot implements MapElement, Poolable, Consumable {
 
     @Override
     public int getCellX() {
-        return (int) (position.x / 80);
+        return (int) (position.x / Map.CELL_WIDTH);
     }
 
     @Override
     public int getCellY() {
-        return (int) (position.y / 80);
+        return (int) (position.y / Map.CELL_HEIGHT);
+    }
+
+    @Override
+    public float getY() {
+        return position.y;
     }
 
     public Type getType() {
@@ -61,42 +71,45 @@ public class Loot implements MapElement, Poolable, Consumable {
         this.position = new Vector2(0, 0);
         this.timePerFrame = 0.15f;
         this.type = null;
+        this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("powerUPS640x128")).split(64,64);
     }
 
     public void setup(Type type) {
         this.type = type;
-        if (type == Type.GOLD) {
+        if (type == Type.POTION) {
             this.title = "Gold";
-            this.lootGold = new TextureRegion(Assets.getInstance().getAtlas().findRegion("coin64")).split(64,64);
+            this.index = 0;
         } else {
             this.title = "Live";
-            this.lootPotion = new TextureRegion(Assets.getInstance().getAtlas().findRegion("heart64")).split(64,64);
+            this.index = 1;
         }
         this.title = title;
         this.active = true;
     }
     @Override
     public void consume(GameCharacter gameCharacter) {
+        switch (type){
+            case POTION:
+                gameCharacter.addHp(0.3f);
+                break;
+            case GOLD:
+                gameCharacter.addCoins(MathUtils.random(3,10));
+                break;
+        }
         gameCharacter.setLoot(this);
         active = false;
     }
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {
-        if (type == Type.GOLD) {
-            TextureRegion texture = lootGold[0][getCurrentFrameIndex(type)];
-            batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.6f, 0.6f, 0);
-        }
-        if (type == Type.POTION) {
-            TextureRegion texture = lootPotion[0][getCurrentFrameIndex(type)];
-            batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.8f, 0.8f, 0);
-        }
+            batch.draw(textures[index][getCurrentFrameIndex(type)], position.x - 32, position.y - 32, 32, 32, 64, 64, 0.6f, 0.6f, 0);
     }
+
     //метод возвращает индекс текстуры
     public int getCurrentFrameIndex(Type type){
-        if (type == Type.GOLD) {
-            return (int) (walkTime / timePerFrame) % lootGold[0].length;
+        if (type == Type.POTION) {
+            return (int) (walkTime / timePerFrame) % textures[index].length;
         }else {
-            return (int) (walkTime / timePerFrame) % lootPotion[0].length;
+            return (int) (walkTime / timePerFrame) % textures[index].length;
         }
     }
 

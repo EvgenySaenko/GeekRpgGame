@@ -2,7 +2,12 @@ package game.rpg.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import game.rpg.GeekRpgGame;
 import game.rpg.screens.utils.Assets;
 
@@ -23,8 +28,8 @@ public class ScreenManager {//управляет всеми экранами п�
     private GameScreen gameScreen;//ссылка на все возможные экраны
     private MenuScreen menuScreen;
     private Screen targetScreen;
-//    private Viewport viewport;
-//    private Camera camera;
+    private Viewport viewport;
+    private Camera camera;
 
     //глобальный объект для всего приложения - синглтон
     private static ScreenManager ourInstance = new ScreenManager();
@@ -33,13 +38,13 @@ public class ScreenManager {//управляет всеми экранами п�
         return ourInstance;
     }
 
-//    public Viewport getViewport() {
-//        return viewport;
-//    }
-//
-//    public Camera getCamera() {
-//        return camera;
-//    }
+    public Viewport getViewport() {
+        return viewport;
+    }
+
+    public Camera getCamera() {
+        return camera;
+    }
 
     private ScreenManager() {//приватный конструктор
     }
@@ -47,23 +52,32 @@ public class ScreenManager {//управляет всеми экранами п�
     public void init(GeekRpgGame game, SpriteBatch batch) {
         this.game = game;
         this.batch = batch;
-//        this.camera = new OrthographicCamera(WORLD_WIDTH, WORLD_HEIGHT);
-//        this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        this.camera = new OrthographicCamera(WORLD_WIDTH, WORLD_HEIGHT); //ортографик камера - камера у которой нет координаты z (2D)
+        this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);//вписывает мир с сохранением пропорций
         this.gameScreen = new GameScreen(batch);
         this.menuScreen = new MenuScreen(batch);
         this.loadingScreen = new LoadingScreen(batch);
     }
 
-//    public void resize(int width, int height) {
-//        viewport.update(width, height);
-//        viewport.apply();
-//    }
-//
-//    public void resetCamera() {
-//        camera.position.set(HALF_WORLD_WIDTH, HALF_WORLD_HEIGHT, 0);
-//        camera.update();
-//        batch.setProjectionMatrix(camera.combined);
-//    }
+    //нужен если размер окна игры меняется - сохраняет пропорции
+    public void resize(int width, int height) {
+        viewport.update(width, height);//вьюпорт получает новые размеры окна
+        viewport.apply();//и решает как выводит картинку с соблюдением пропорций
+    }
+
+    public void resetCamera() {//метод который сбрасывает камеру
+        camera.position.set(HALF_WORLD_WIDTH, HALF_WORLD_HEIGHT, 0);
+        camera.update();
+        viewport.apply();
+        batch.setProjectionMatrix(camera.combined);
+    }
+    //метод выставляет нашу камеру в указанную нами точку
+    public void pointCameraTo(Vector2 position){
+        camera.position.set(position,0);
+        camera.update();
+        viewport.apply();
+        batch.setProjectionMatrix(camera.combined);
+    }
 
     //сменить экран => указав тип экрана
     public void changeScreen(ScreenType type) {
@@ -73,7 +87,7 @@ public class ScreenManager {//управляет всеми экранами п�
         if (screen != null) {//если мы находились не на пустом экране
             screen.dispose();//чистим объекты текущего экрана
         }
-//        resetCamera();
+        resetCamera();//при смене экрана мы сбрасываем камеру - нам не нужно чтобы она смотрела в какую-то точку
         game.setScreen(loadingScreen);//переходим на экран с полоской загрузки(при смене экрана)
         switch (type) {//просим сменить экран на
             case MENU://если нам надо перейти на МЕНЮ экран
