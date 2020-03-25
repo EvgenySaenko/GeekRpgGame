@@ -25,36 +25,6 @@ public class Hero extends GameCharacter {
     }
 
 
-//    @Override
-//    public void render(SpriteBatch batch, BitmapFont font) {
-//        if (activePointer){
-//            batch.draw(texturePointer, dst.x - 32, dst.y - 32,
-//                    32, 32, 64, 64, 0.5f, 0.5f,0);
-//        }
-//        TextureRegion currentRegion = textures[0][getCurrentFrameIndex()];
-//        TextureRegion attackRegion = textures[1][getCurrentFrameIndex()];
-//        if (dst.x > position.x){
-//            if (currentRegion.isFlipX()) {
-//                currentRegion.flip(true, false);
-//                attackRegion.flip(true,false);
-//            }
-//        }else {
-//            if (!currentRegion.isFlipX()) {
-//                currentRegion.flip(true, false);
-//                attackRegion.flip(true,false);
-//            }
-//        }
-//        batch.draw(currentRegion, position.x - 32, position.y - 16, 32, 32, 64, 64, 1.5f, 1.5f, 0);
-//
-//        if (state == State.ATTACK){
-//            batch.draw(attackRegion, position.x - 32, position.y - 16, 32, 32, 64, 64, 1.5f, 1.5f, 0);
-//        }
-//        if (hp < hpMax){
-//            batch.draw(textureHp, position.x - 32, position.y + 50, 60 , 10);
-//            batch.draw(textureHitPoint,position.x - 32,position.y + 50,60 * ((float) hp / hpMax),10);
-//        }
-//    }
-
 
     public void renderGUI(SpriteBatch batch, BitmapFont font) {
         strBuilder.setLength(0);

@@ -71,7 +71,7 @@ public class Loot implements MapElement, Poolable, Consumable {
         this.position = new Vector2(0, 0);
         this.timePerFrame = 0.15f;
         this.type = null;
-        this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("powerUPS640x128")).split(64,64);
+        this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("powerUPS")).split(64,64);
     }
 
     public void setup(Type type) {
@@ -90,14 +90,21 @@ public class Loot implements MapElement, Poolable, Consumable {
     public void consume(GameCharacter gameCharacter) {
         switch (type){
             case POTION:
-                gameCharacter.addHp(0.3f);
-                break;
+                if (gameCharacter.hp != gameCharacter.hpMax) {//сделал пока что если здоровье фул лут не поднимается - валяется на земле
+                    gameCharacter.addHp(0.4f);
+                    gameCharacter.setLoot(this);
+                    active = false;
+                    break;
+                }else {
+                    break;
+                }
+
             case GOLD:
                 gameCharacter.addCoins(MathUtils.random(3,10));
+                gameCharacter.setLoot(this);
+                active = false;
                 break;
         }
-        gameCharacter.setLoot(this);
-        active = false;
     }
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {

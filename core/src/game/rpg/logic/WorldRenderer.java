@@ -22,7 +22,7 @@ public class WorldRenderer {//отрисовщик
     private GameController gc;
     private SpriteBatch batch;
     private BitmapFont font32;
-    private BitmapFont font10;
+    private BitmapFont font20;
     private BitmapFont font14;
     private List<MapElement>[] drawables;//на какой полосе что находится
     private Vector2 pov;
@@ -36,7 +36,7 @@ public class WorldRenderer {//отрисовщик
     public WorldRenderer(GameController gameController, SpriteBatch batch) {
         this.gc = gameController;
         this.font32 = Assets.getInstance().getAssetManager().get("fonts/font32.ttf");
-        this.font10 = Assets.getInstance().getAssetManager().get("fonts/font10.ttf");
+        this.font20 = Assets.getInstance().getAssetManager().get("fonts/font20.ttf");
         this.font14 = Assets.getInstance().getAssetManager().get("fonts/font14.ttf");
         this.batch = batch;
         this.pov = new Vector2(0,0);
@@ -106,6 +106,11 @@ public class WorldRenderer {//отрисовщик
             drawables[p.getCellY()].add(p);
         }
 
+        for (int i = 0; i < gc.getTextController().getActiveList().size(); i++) {//добавлаем текстовые элементы игры
+            Text tx = gc.getTextController().getActiveList().get(i);
+            drawables[tx.getCellY()].add(tx);
+        }
+
         for (int i = 0; i < drawables.length; i++) {
             Collections.sort(drawables[i], yComparator);
         }
@@ -123,7 +128,7 @@ public class WorldRenderer {//отрисовщик
         }
         for (int y = Map.MAP_CELLS_HEIGHT - 1; y >= 0; y--) {//рисуем сверху вниз слоями
             for (int i = 0; i < drawables[y].size(); i++) {
-                drawables[y].get(i).render(batch, font14);//рисуем персонажей(живые объекты)
+                drawables[y].get(i).render(batch, null);//рисуем персонажей(живые объекты) - урон над головой тоже рисуется
             }
             for (int x = 0; x < Map.MAP_CELLS_WIDTH; x++) {
                 gc.getMap().renderUpper(batch, x, y);//рисуем саму карту
@@ -131,8 +136,8 @@ public class WorldRenderer {//отрисовщик
         }
         for (int i = 0; i < gc.getMonstersController().getActiveList().size(); i++) {//монстров
             Monster m = gc.getMonstersController().getActiveList().get(i);
-           // m.renderDamage(batch,font10);//отрисовка хп-цифр над монстром
         }
+
         gc.getSpecialEffectsController().render(batch);//рисуем спецэффекты
         //заканчиваем отрисовку в буфер
         batch.end();
@@ -155,7 +160,7 @@ public class WorldRenderer {//отрисовщик
 
         //после уже рисуем гуи персонажа
         batch.begin();
-        //gc.getHero().renderGUI(batch, font32);
+        gc.getHero().renderGUI(batch, font32);
         batch.end();
         //после всей отрисовки возвращаем камеру на место относительно героя
         ScreenManager.getInstance().pointCameraTo(pov);

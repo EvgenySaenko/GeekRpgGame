@@ -164,9 +164,9 @@ public class Weapon implements MapElement, Poolable, Consumable {
         this.speed = Float.parseFloat(tokens[5].trim());
         this.range = Float.parseFloat(tokens[6].trim());
         if (this.type == Type.MELEE) {
-            texture = Assets.getInstance().getAtlas().findRegion("sword32");
+            texture = Assets.getInstance().getAtlas().findRegion("sword64");
         } else {
-            texture = Assets.getInstance().getAtlas().findRegion("bow32");
+            texture = Assets.getInstance().getAtlas().findRegion("bow64");
         }
     }
     //сюда отдается готовое оружие и он переписывает данные в себя
@@ -183,7 +183,7 @@ public class Weapon implements MapElement, Poolable, Consumable {
 
     @Override
     public void render(SpriteBatch batch, BitmapFont font) {
-        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.8f, 0.8f, 0.0f);
+        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, 0.5f, 0.5f, 0.0f);
     }
 
     public void renderGUI(SpriteBatch batch, BitmapFont font){

@@ -1,7 +1,5 @@
 package game.rpg.logic;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -27,7 +25,6 @@ public abstract class GameCharacter implements MapElement {
 
     protected TextureRegion[][] textures;
     protected TextureRegion textureHp;
-    protected Texture textureHitPoint;
 
     protected State state;
     protected float stateTimer;
@@ -41,7 +38,7 @@ public abstract class GameCharacter implements MapElement {
     protected Vector2 tmp2;
 
     protected Circle area;
-    private StringBuilder strBuilder;
+    protected StringBuilder strBuilder;
 
     protected float lifetime;
     protected float attackTime;
@@ -54,6 +51,7 @@ public abstract class GameCharacter implements MapElement {
     protected int hp, hpMax, whatDamage;
     protected boolean alive;
     protected int coins;
+    protected BitmapFont font14;
 
 
 
@@ -73,6 +71,10 @@ public abstract class GameCharacter implements MapElement {
 
     public Weapon getWeapon() {
         return weapon;
+    }
+
+    public int getWhatDamage() {
+        return whatDamage;
     }
 
     public void changePosition(float x, float y) {
@@ -130,16 +132,22 @@ public abstract class GameCharacter implements MapElement {
         this.timePerFrame = 0.2f;
         this.target = null;
         this.alive = true;
-        this.whatDamage = 0;
         this.coins = 0;
+        this.font14 = Assets.getInstance().getAssetManager().get("fonts/font14.ttf");
     }
 
     public void addCoins(int amount) {//начисляем монеты
         coins += amount;
+        gc.getTextController().setupAddCoins(position.x,position.y,amount);//при хиле показывает сколько здоровья восстановил
     }
+
     public void addHp(float percent) {//начисляем здоровье
         int amount = (int) (hpMax * percent);
+        if(hp + amount >= hpMax){// добавим правильное отображение хп если банка восполняет больше чем нам надо
+            amount = hpMax - hp;// то восполняет ровно на недостающее количество хп
+        }
         hp += amount;
+        gc.getTextController().setupHealing(position.x,position.y,amount);//при хиле показывает сколько здоровья восстановил
         if (hp > hpMax) {
             hp = hpMax;
         }
@@ -159,27 +167,21 @@ public abstract class GameCharacter implements MapElement {
                 }
             }
             batch.setColor(1.0f, 1.0f - damageTimer, 1.0f - damageTimer, 1.0f);//когда будут сильно бить зеленый и синий каналы будут обнулятся
-            batch.draw(currentRegion, position.x - 32, position.y - 16, 32, 32, 64, 64, 1.0f, 1.0f, 0);
+            batch.draw(currentRegion, position.x - 32, position.y - 16, 32, 32, 64, 64, 1.2f, 1.2f, 0);
             batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 
             batch.setColor(0.2f, 0.2f, 0.2f, 1.0f);//черная обводка
-            batch.draw(textureHp, position.x - 32, position.y + 28, 64, 14);
+            batch.draw(textureHp, position.x - 32, position.y + 48, 64, 14);//черная полоска
 
             float n = (float) hp / hpMax;
             float shock = damageTimer * 4.0f;
             batch.setColor(1.0f - n, n, 0.0f, 1.0f);
-            batch.draw(textureHp, position.x - 30 + MathUtils.random(-shock, shock), position.y + 30 + MathUtils.random(-shock, shock), 60 * ((float) hp / hpMax), 10);
+            batch.draw(textureHp, position.x - 30 + MathUtils.random(-shock, shock), position.y + 50 + MathUtils.random(-shock, shock), 60 * ((float) hp / hpMax), 14);
             batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-            font.draw(batch, String.valueOf(hp), position.x - 30 + MathUtils.random(-shock, shock), position.y + 42 + MathUtils.random(-shock, shock), 60, 1, false);
+            //количество хп осталось
+            font14.draw(batch, String.valueOf(hp), position.x - 30 + MathUtils.random(-shock, shock), position.y + 63 + MathUtils.random(-shock, shock), 60, 1, false);
     }
 
-    public void renderDamage(SpriteBatch batch, BitmapFont font,float dt){//заготовка к отлетающему хп
-        if (hp < hpMax) {
-            strBuilder.setLength(0);
-            strBuilder.append(hp).append("\n");
-            font.draw(batch, strBuilder, position.x - 16, position.y + 60);
-        }
-    }
     //метод возвращает индекс текстуры
     public int getCurrentFrameIndex(){
         return(int) (walkTime / timePerFrame) % textures[0].length;
@@ -208,10 +210,11 @@ public abstract class GameCharacter implements MapElement {
                 if (weapon.getType() == Weapon.Type.MELEE ) {//если мы находимся в мили
                     tmp.set(target.position).sub(position);//построили вектор от нас в сторону мишени
                     gc.getSpecialEffectsController().setupSwordSwing(position.x,position.y,tmp.angle());//вконце у вектора запросили его угол
-                    target.takeDamage(this, this.whatDamage = weapon.generateDamage());//и цель получает урон
+                    target.takeDamage(this,weapon.generateDamage());//и цель получает урон
                 }
                 if (weapon.getType() == Weapon.Type.RANGED && target != null) {//если в рэндж то кидает снаряд
-                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y,this.whatDamage = weapon.generateDamage());
+                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y,weapon.generateDamage());
+
                 }
             }
         }
@@ -241,7 +244,8 @@ public abstract class GameCharacter implements MapElement {
 
     public boolean takeDamage(GameCharacter attacker, int damage) {
         lastAttacker = attacker;//запоминаем последнего атакующего
-        hp -= this.weapon.generateDamage();
+        hp -= damage;
+        gc.getTextController().setupDamage(position.x,position.y,damage);
         damageTimer += 0.4;
         if (damageTimer > 1.0f){
             damageTimer = 1.0f;

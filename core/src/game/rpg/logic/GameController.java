@@ -20,6 +20,7 @@ public class GameController {
     private WeaponController weaponController;
     private SpecialEffectsController specialEffectsController;
     private LootsController lootsController;
+    private TextController textController;
     private Vector2 tmp, tmp2;
     private Vector2 mouse;
 
@@ -66,6 +67,9 @@ public class GameController {
         return lootsController;
     }
 
+    public TextController getTextController() {
+        return textController;
+    }
 
     public GameController() {
         this.allCharacters = new ArrayList<>();
@@ -76,10 +80,10 @@ public class GameController {
         this.map = new Map();
         this.monstersController = new MonstersController(this, 15);
         this.specialEffectsController = new SpecialEffectsController();
+        this.textController = new TextController(this);
         this.tmp = new Vector2(0, 0);
         this.tmp2 = new Vector2(0, 0);
         this.mouse = new Vector2(0,0);
-
     }
 
     public void update(float dt) {
@@ -96,6 +100,7 @@ public class GameController {
         lootsController.update(dt);
         checkCollisions();
         projectilesController.update(dt);
+        textController.update(dt);
     }
 
     public void collideUnits(GameCharacter u1, GameCharacter u2) {
@@ -139,7 +144,7 @@ public class GameController {
             }
             for (int i = 0; i < lootsController.getActiveList().size(); i++) {//столкновения лута и героя
                 Loot loot = lootsController.getActiveList().get(i);
-                if (hero.getPosition().dst(loot.getPosition()) < 20) {
+                if (hero.getPosition().dst(loot.getPosition()) < 20 ) {
                     loot.consume(hero);
                 }
             }
