@@ -8,6 +8,7 @@ import game.rpg.logic.utils.MapElement;
 import game.rpg.logic.utils.Poolable;
 
 public class Projectile implements Poolable, MapElement {
+    private  GameController gc;
     private TextureRegion textureRegion;
     private GameCharacter owner;
     private Vector2 position;
@@ -25,12 +26,17 @@ public class Projectile implements Poolable, MapElement {
 
     @Override
     public int getCellX() {
-        return (int) position.x / 80;
+        return (int) position.x / Map.CELL_WIDTH;
     }
 
     @Override
     public int getCellY() {
-        return (int) position.y / 80;
+        return (int) position.y / Map.CELL_HEIGHT;
+    }
+
+    @Override
+    public float getY() {
+        return position.y;
     }
 
     public Vector2 getPosition() {
@@ -42,7 +48,8 @@ public class Projectile implements Poolable, MapElement {
         return active;
     }
 
-    public Projectile() {
+    public Projectile(GameController gc) {
+        this.gc = gc;
         this.textureRegion = null;
         this.position = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
@@ -70,7 +77,7 @@ public class Projectile implements Poolable, MapElement {
 
     public void update(float dt) {
         position.mulAdd(velocity, dt);
-        if (position.x < 0 || position.x > 1280 || position.y < 0 || position.y > 720) {
+        if (position.x < 0 || position.x > gc.getMap().getWidthLimit() || position.y < 0 || position.y > gc.getMap().getHeightLimit()) {
             deactivate();
         }
     }

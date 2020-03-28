@@ -1,9 +1,11 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import game.rpg.screens.ScreenManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +18,22 @@ public class GameController {
     private Map map;
     private Hero hero;
     private WeaponController weaponController;
+    private SpecialEffectsController specialEffectsController;
     private LootsController lootsController;
-    private Weapon weapon;
+    private TextController textController;
     private Vector2 tmp, tmp2;
-    private boolean up;
+    private Vector2 mouse;
 
+
+    private float worldTimer;
+
+    public Vector2 getMouse() {
+        return mouse;
+    }
+
+    public float getWorldTimer() {
+        return worldTimer;
+    }
 
     public List<GameCharacter> getAllCharacters() {
         return allCharacters;
@@ -46,38 +59,48 @@ public class GameController {
         return weaponController;
     }
 
+    public SpecialEffectsController getSpecialEffectsController() {
+        return specialEffectsController;
+    }
+
     public LootsController getLootsController() {
         return lootsController;
     }
 
-    public boolean isUp() {
-        return up;
+    public TextController getTextController() {
+        return textController;
     }
-
 
     public GameController() {
         this.allCharacters = new ArrayList<>();
-        this.projectilesController = new ProjectilesController();
-        this.hero = new Hero(this);
+        this.projectilesController = new ProjectilesController(this);
         this.weaponController = new WeaponController(this);
+        this.hero = new Hero(this);
         this.lootsController = new LootsController(this);
         this.map = new Map();
-        this.monstersController = new MonstersController(this, 5);
+        this.monstersController = new MonstersController(this, 15);
+        this.specialEffectsController = new SpecialEffectsController();
+        this.textController = new TextController(this);
         this.tmp = new Vector2(0, 0);
         this.tmp2 = new Vector2(0, 0);
-
+        this.mouse = new Vector2(0,0);
     }
 
     public void update(float dt) {
+        mouse.set(Gdx.input.getX(),Gdx.input.getY());//в мышку зашили координаты х у
+        ScreenManager.getInstance().getViewport().unproject(mouse);//анпроджект мышиные координаты преобразует в мировые(маус - точка в нашем мире)
+        worldTimer += dt;
         allCharacters.clear();//очищаем всех персонажей
         allCharacters.add(hero);//добавили героя
         allCharacters.addAll(monstersController.getActiveList());//добавили всех монстров
         hero.update(dt);
         monstersController.update(dt);
         weaponController.update(dt);
+        specialEffectsController.update(dt);
         lootsController.update(dt);
         checkCollisions();
         projectilesController.update(dt);
+        textController.update(dt);
     }
 
     public void collideUnits(GameCharacter u1, GameCharacter u2) {
@@ -121,14 +144,8 @@ public class GameController {
             }
             for (int i = 0; i < lootsController.getActiveList().size(); i++) {//столкновения лута и героя
                 Loot loot = lootsController.getActiveList().get(i);
-                if (hero.getPosition().dst(loot.getPosition()) < 20) {
+                if (hero.getPosition().dst(loot.getPosition()) < 20 ) {
                     loot.consume(hero);
-                    if (loot.getType() == Loot.Type.GOLD){//если тип лута золото начисляем золото
-                        hero.addCoins(MathUtils.random(3,6));
-                    }
-                    if (loot.getType() == Loot.Type.POTION){//если зелья, то  = hp++
-                        hero.addHp(hero.hpMax/3);
-                    }
                 }
             }
 

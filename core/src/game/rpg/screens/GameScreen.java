@@ -18,6 +18,7 @@ public class GameScreen extends AbstractScreen {
     private WorldRenderer worldRenderer;
     Stage stage;
     private boolean pressed;
+    private TextButton pause;
 
     public GameScreen(SpriteBatch batch) {
         super(batch);
@@ -45,8 +46,10 @@ public class GameScreen extends AbstractScreen {
     public void pause() {
         if (pressed ==false){
             pressed = true;
+            pause.setText("PLAY");
         }else{
             pressed = false;
+            pause.setText("PAUSE");
         }
     }
 
@@ -64,11 +67,11 @@ public class GameScreen extends AbstractScreen {
                 ,skin.getDrawable("buttonPressed64x32"),font10);
 
         TextButton menu = new TextButton("MENU",menuButtonStyle);
-        TextButton pause = new TextButton("PAUSE",pauseButtonStyle);
-        TextButton play = new TextButton("PLAY",pauseButtonStyle);
+        this.pause = new TextButton("PAUSE",pauseButtonStyle);
+       // TextButton play = new TextButton("PLAY",pauseButtonStyle);
 
         menu.setPosition(1216,688);//задали позиции кнопок
-        play.setPosition(1150, 688);
+       // play.setPosition(1150, 688);
         pause.setPosition(1150,688);
 
 
@@ -86,7 +89,7 @@ public class GameScreen extends AbstractScreen {
             }
         });
         stage.addActor(menu);//добавим кнопку на сцену
-        stage.addActor(play);
+        //stage.addActor(play);
         stage.addActor(pause);
         skin.dispose();
     }
