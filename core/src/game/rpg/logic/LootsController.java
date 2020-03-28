@@ -8,7 +8,7 @@ public class LootsController extends ObjectPool<Loot> {
 
     @Override
     protected Loot newObject() {
-        return new Loot();
+        return new Loot(gc);
     }
 
     public LootsController(GameController gc) {

@@ -1,6 +1,7 @@
 package game.rpg.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -18,10 +19,14 @@ public class MenuScreen extends AbstractScreen {
     private Stage stage;
     private BitmapFont font72;
     Texture menuImages;
+    Music music;
 
 
     public MenuScreen(SpriteBatch batch) {
         super(batch);
+        this.music = Gdx.audio.newMusic(Gdx.files.internal("audio/mysticalTheme.mp3"));
+        this.music.setLooping(true);//зациклим музыку
+        this.music.play();//запустим музыку на экране меню
     }
 
     @Override
@@ -81,5 +86,10 @@ public class MenuScreen extends AbstractScreen {
 
     public void update(float dt) {
         stage.act(dt);//стейдж проверяет нажатие кнопки смену ее изображений
+    }
+
+    @Override
+    public void dispose() {
+        music.dispose();
     }
 }

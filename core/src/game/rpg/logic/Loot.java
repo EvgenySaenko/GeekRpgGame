@@ -1,5 +1,6 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -13,6 +14,7 @@ import game.rpg.screens.utils.Assets;
 
 public class Loot implements MapElement, Poolable, Consumable {
 
+    private GameController gc;
     protected TextureRegion[][] textures;
 
     protected float timePerFrame;
@@ -67,7 +69,8 @@ public class Loot implements MapElement, Poolable, Consumable {
     }
 
 
-    public Loot() {
+    public Loot(GameController gc) {
+        this.gc = gc;
         this.position = new Vector2(0, 0);
         this.timePerFrame = 0.15f;
         this.type = null;
@@ -91,7 +94,9 @@ public class Loot implements MapElement, Poolable, Consumable {
         switch (type){
             case POTION:
                 if (gameCharacter.hp != gameCharacter.hpMax) {//сделал пока что если здоровье фул лут не поднимается - валяется на земле
-                    gameCharacter.addHp(0.4f);
+                    int restored = gameCharacter.restoreHp(0.2f);
+                    gc.getInfoController().setupAnyAmount(gameCharacter.getPosition().x,gameCharacter.getPosition().y, Color.GREEN,"+",restored);//отрисовка урона по герою
+                    gameCharacter.restoreHp(0.4f);
                     gameCharacter.setLoot(this);
                     active = false;
                     break;
@@ -100,8 +105,10 @@ public class Loot implements MapElement, Poolable, Consumable {
                 }
 
             case GOLD:
-                gameCharacter.addCoins(MathUtils.random(3,10));
+                int amount = MathUtils.random(3,10);
+                gameCharacter.addCoins(amount);
                 gameCharacter.setLoot(this);
+                gc.getInfoController().setupAnyAmount(gameCharacter.getPosition().x,gameCharacter.getPosition().y,Color.GOLD,"+",amount);
                 active = false;
                 break;
         }

@@ -1,5 +1,8 @@
 package game.rpg.logic;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -9,6 +12,7 @@ import game.rpg.screens.utils.Assets;
 
 public class Monster extends GameCharacter implements Poolable {
     private StringBuilder strBuilder;
+    private Sound sound;
     @Override
     public boolean isActive() {//если здоровье больше он активный
         return hp > 0;
@@ -17,6 +21,7 @@ public class Monster extends GameCharacter implements Poolable {
     public Monster(GameController gc) {
         super(gc, 80, 80.0f);
         this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("dwarf64")).split(64,64);
+        this.sound = Gdx.audio.newSound(Gdx.files.internal("audio/swordStrike.mp3"));
         this.changePosition(800.0f, 300.0f);
         this.dst.set(this.position);
         this.strBuilder = new StringBuilder();
@@ -40,25 +45,12 @@ public class Monster extends GameCharacter implements Poolable {
         gc.getLootsController().setup(position.x,position.y);
     }
 
-//    @Override
-//    public void render(SpriteBatch batch, BitmapFont font) {
-//        TextureRegion currentRegion = textures[0][getCurrentFrameIndex()];
-//        if (dst.x > position.x){
-//            if (currentRegion.isFlipX()) {
-//                currentRegion.flip(true, false);
-//            }
-//        }else {
-//            if (!currentRegion.isFlipX()) {
-//                currentRegion.flip(true, false);
-//            }
-//        }
-//        batch.draw(currentRegion, position.x - 32, position.y - 32, 32, 32, 64, 64, 1.5f, 1.5f, 0);
-//        if (this.position.dst(gc.getHero().getPosition()) < visionRadius){
-//            batch.draw(textureHp, position.x - 30, position.y + 50, 60, 10);
-//            batch.draw(textureHitPoint, position.x - 30, position.y + 50, 60 * ((float) hp / hpMax), 10);
-//        }
-//
-//    }
+    @Override
+    public boolean takeDamage(GameCharacter attacker, int damage) {
+        gc.getInfoController().setupAnyAmount(position.x,position.y, Color.WHITE,"-",damage);//отрисовка урона по монстру
+        sound.play();
+        return super.takeDamage(attacker, damage);
+    }
 
     public void update(float dt) {
         super.update(dt);
@@ -91,5 +83,9 @@ public class Monster extends GameCharacter implements Poolable {
             dst.set(position.x + MathUtils.random(100, 200) * Math.signum(position.x - lastAttacker.position.x),
                     position.y + MathUtils.random(100, 200) * Math.signum(position.y - lastAttacker.position.y));//то же и по вертикали
         }
+    }
+
+    public void dispose(){
+        sound.dispose();
     }
 }
