@@ -2,6 +2,8 @@ package game.rpg.logic;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -11,11 +13,13 @@ public class Hero extends GameCharacter {
     private TextureRegion texturePointer;
     private StringBuilder strBuilder;
     private boolean activePointer;
+    //private Sound sound;
 
     public Hero(GameController gc) {
         super(gc, 200, 120.0f);
         this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("archerGOandFIRE")).split(64,64);
         this.texturePointer = Assets.getInstance().getAtlas().findRegion("pointerGreen");
+        //this.sound = Gdx.audio.newSound(Gdx.files.internal("audio/swordStrike.mp3"));
         this.activePointer = false;
         this.changePosition(100.0f, 100.0f);
         this.dst.set(position);
@@ -41,6 +45,13 @@ public class Hero extends GameCharacter {
         super.onDeath();
         coins = 0;
         hp = hpMax;
+    }
+
+    @Override
+    public boolean takeDamage(GameCharacter attacker, int damage) {
+        gc.getInfoController().setupAnyAmount(position.x,position.y, Color.RED,"-",damage);//отрисовка урона по герою
+        //sound.play();
+        return super.takeDamage(attacker, damage);
     }
 
     @Override

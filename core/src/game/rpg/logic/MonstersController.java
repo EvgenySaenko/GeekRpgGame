@@ -31,4 +31,8 @@ public class MonstersController extends ObjectPool<Monster> {
         }
         checkPool();
     }
+
+    public void dispose(){
+        getActiveElement().dispose();
+    }
 }

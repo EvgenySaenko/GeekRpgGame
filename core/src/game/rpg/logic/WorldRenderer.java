@@ -106,11 +106,6 @@ public class WorldRenderer {//отрисовщик
             drawables[p.getCellY()].add(p);
         }
 
-        for (int i = 0; i < gc.getTextController().getActiveList().size(); i++) {//добавлаем текстовые элементы игры
-            Text tx = gc.getTextController().getActiveList().get(i);
-            drawables[tx.getCellY()].add(tx);
-        }
-
         for (int i = 0; i < drawables.length; i++) {
             Collections.sort(drawables[i], yComparator);
         }
@@ -139,6 +134,7 @@ public class WorldRenderer {//отрисовщик
         }
 
         gc.getSpecialEffectsController().render(batch);//рисуем спецэффекты
+        gc.getInfoController().render(batch,font20);
         //заканчиваем отрисовку в буфер
         batch.end();
         frameBuffer.end();
@@ -149,8 +145,8 @@ public class WorldRenderer {//отрисовщик
         batch.begin();
         batch.setShader(shaderProgram);//устанавливаем шейденую программу(активируем)
         shaderProgram.setUniformf(shaderProgram.getUniformLocation("time"), gc.getWorldTimer());//прокидываем значения - на место тайм - мировое время
-        shaderProgram.setUniformf(shaderProgram.getUniformLocation("px"), pov.x / 1280.0f);//отдаем координату х
-        shaderProgram.setUniformf(shaderProgram.getUniformLocation("py"), pov.y / 720.0f);
+        shaderProgram.setUniformf(shaderProgram.getUniformLocation("px"), pov.x / ScreenManager.WORLD_WIDTH);//отдаем координату х
+        shaderProgram.setUniformf(shaderProgram.getUniformLocation("py"), pov.y / ScreenManager.WORLD_HEIGHT);
         Gdx.gl.glClearColor(0, 0, 0, 1);//чистим экран
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.draw(frameBufferRegion, 0, 0);//рисуем разом наш кадр из буфера

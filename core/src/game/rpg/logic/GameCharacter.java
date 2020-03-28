@@ -1,6 +1,5 @@
 package game.rpg.logic;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -48,7 +47,7 @@ public abstract class GameCharacter implements MapElement {
 
     protected float visionRadius;
     protected float speed;
-    protected int hp, hpMax, whatDamage;
+    protected int hp, hpMax;
     protected boolean alive;
     protected int coins;
     protected BitmapFont font14;
@@ -73,9 +72,6 @@ public abstract class GameCharacter implements MapElement {
         return weapon;
     }
 
-    public int getWhatDamage() {
-        return whatDamage;
-    }
 
     public void changePosition(float x, float y) {
         position.set(x, y);
@@ -135,22 +131,19 @@ public abstract class GameCharacter implements MapElement {
         this.coins = 0;
         this.font14 = Assets.getInstance().getAssetManager().get("fonts/font14.ttf");
     }
-
-    public void addCoins(int amount) {//начисляем монеты
+    //начисляем монеты
+    public void addCoins(int amount) {
         coins += amount;
-        gc.getTextController().setupAddCoins(position.x,position.y,amount);//при хиле показывает сколько здоровья восстановил
-    }
 
-    public void addHp(float percent) {//начисляем здоровье
+    }
+    //начисляем здоровье
+    public int restoreHp(float percent) {
         int amount = (int) (hpMax * percent);
         if(hp + amount >= hpMax){// добавим правильное отображение хп если банка восполняет больше чем нам надо
             amount = hpMax - hp;// то восполняет ровно на недостающее количество хп
         }
         hp += amount;
-        gc.getTextController().setupHealing(position.x,position.y,amount);//при хиле показывает сколько здоровья восстановил
-        if (hp > hpMax) {
-            hp = hpMax;
-        }
+        return amount;
     }
 
 
@@ -245,7 +238,6 @@ public abstract class GameCharacter implements MapElement {
     public boolean takeDamage(GameCharacter attacker, int damage) {
         lastAttacker = attacker;//запоминаем последнего атакующего
         hp -= damage;
-        gc.getTextController().setupDamage(position.x,position.y,damage);
         damageTimer += 0.4;
         if (damageTimer > 1.0f){
             damageTimer = 1.0f;
