@@ -133,7 +133,7 @@ public class Weapon implements MapElement, Poolable, Consumable {
     }
 
     public int generateDamage() {
-        return MathUtils.random(minDamage, maxDamage);
+        return  MathUtils.random(minDamage, maxDamage);
     }
 
     public float getSpeed() {

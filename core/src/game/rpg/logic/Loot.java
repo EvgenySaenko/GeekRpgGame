@@ -96,7 +96,6 @@ public class Loot implements MapElement, Poolable, Consumable {
                 if (gameCharacter.hp != gameCharacter.hpMax) {//сделал пока что если здоровье фул лут не поднимается - валяется на земле
                     int restored = gameCharacter.restoreHp(0.2f);
                     gc.getInfoController().setupAnyAmount(gameCharacter.getPosition().x,gameCharacter.getPosition().y, Color.GREEN,"+",restored);//отрисовка урона по герою
-                    gameCharacter.restoreHp(0.4f);
                     gameCharacter.setLoot(this);
                     active = false;
                     break;

@@ -3,12 +3,12 @@ package game.rpg.logic;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import game.rpg.logic.utils.Poolable;
 import game.rpg.screens.utils.Assets;
+
+import static game.rpg.logic.Calculations.amountHp;
 
 public class Monster extends GameCharacter implements Poolable {
     private StringBuilder strBuilder;
@@ -19,7 +19,7 @@ public class Monster extends GameCharacter implements Poolable {
     }
 
     public Monster(GameController gc) {
-        super(gc, 80, 80.0f);
+        super(gc,  80.0f);
         this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("dwarf64")).split(64,64);
         this.sound = Gdx.audio.newSound(Gdx.files.internal("audio/swordStrike.mp3"));
         this.changePosition(800.0f, 300.0f);
@@ -34,13 +34,21 @@ public class Monster extends GameCharacter implements Poolable {
         do {
             changePosition(MathUtils.random(0, 1280), MathUtils.random(0, 720));
         } while (!gc.getMap().isGroundPassable(position));
-        hpMax = 80;
+        if (gc.getHero().level == 1 || gc.getHero().level == 2){//если уровень героя 1 или 2
+            level = 1;// то мобы создаются его уровня
+        }else {
+            level = MathUtils.random(gc.getHero().level - 1, gc.getHero().level + 1);
+        }
+        hpMax = amountHp(level);
         hp = hpMax;
     }
 
     @Override
     public void onDeath() {
         super.onDeath();
+        int exp = gc.getHero().increasedExperienceForKilling(this.hpMax,this.level);
+        System.out.println("Monster = > level " + this.level + "hp" + this.hpMax + " " + "experience " + exp);
+        gc.getInfoController().setupExperienceForKilling(position.x,position.y,Color.CORAL,"Exp",exp);
         gc.getWeaponController().setup(position.x + MathUtils.random(-50,50), position.y + MathUtils.random(-50,50));
         gc.getLootsController().setup(position.x,position.y);
     }

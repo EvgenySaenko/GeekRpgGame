@@ -9,6 +9,9 @@ import com.badlogic.gdx.math.Vector2;
 import game.rpg.logic.utils.MapElement;
 import game.rpg.screens.utils.Assets;
 
+import static game.rpg.logic.Calculations.amountHp;
+import static game.rpg.logic.Calculations.amountOfDamage;
+
 
 public abstract class GameCharacter implements MapElement {
     public enum State {
@@ -47,10 +50,12 @@ public abstract class GameCharacter implements MapElement {
 
     protected float visionRadius;
     protected float speed;
-    protected int hp, hpMax;
+    protected float power;//коэффициент силы персонажа
+    protected int hp, hpMax,experience,level,damage;
     protected boolean alive;
     protected int coins;
     protected BitmapFont font14;
+    protected BitmapFont font20;
 
 
 
@@ -111,7 +116,7 @@ public abstract class GameCharacter implements MapElement {
         this.loot = loot;
     }
 
-    public GameCharacter(GameController gc, int hpMax, float speed) {
+    public GameCharacter(GameController gc, float speed) {
         this.gc = gc;
         this.textureHp = Assets.getInstance().getAtlas().findRegion("hp");
         this.strBuilder = new StringBuilder();
@@ -120,8 +125,12 @@ public abstract class GameCharacter implements MapElement {
         this.dst = new Vector2(0.0f, 0.0f);
         this.position = new Vector2(0.0f, 0.0f);
         this.area = new Circle(0.0f, 0.0f, 15);
-        this.hpMax = hpMax;
+        this.level = 1;//уровень
+        this.power = 0.1f;//коэффициент силы персонажа
+        this.hpMax = 80;
         this.hp = this.hpMax;
+        this.experience = 0;//опыт
+        this.damage = 0;
         this.speed = speed;//когда персонаж создается он получает скорость
         this.state = State.IDLE;
         this.stateTimer = 1.0f;
@@ -130,6 +139,7 @@ public abstract class GameCharacter implements MapElement {
         this.alive = true;
         this.coins = 0;
         this.font14 = Assets.getInstance().getAssetManager().get("fonts/font14.ttf");
+        this.font20 = Assets.getInstance().getAssetManager().get("fonts/font20.ttf");
     }
     //начисляем монеты
     public void addCoins(int amount) {
@@ -144,6 +154,23 @@ public abstract class GameCharacter implements MapElement {
         }
         hp += amount;
         return amount;
+    }
+
+    //начисление опыта за нанесенный урон
+    public void increasedExperienceForDamage(int damage){
+        experience += damage;
+        levelUp();
+    }
+
+
+    //повышение уровня
+    public void levelUp(){
+       if (experience >= Calculations.levelUp(this.level + 1)){//если опыт равен опыту для 2 уровня, то апаем уровень и сбрасываем опыт
+           this.level++;
+           this.power = 0.1f * level;
+           this.experience = 0;
+           hpMax = amountHp(level);
+       }
     }
 
 
@@ -173,6 +200,7 @@ public abstract class GameCharacter implements MapElement {
             batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
             //количество хп осталось
             font14.draw(batch, String.valueOf(hp), position.x - 30 + MathUtils.random(-shock, shock), position.y + 63 + MathUtils.random(-shock, shock), 60, 1, false);
+            font14.draw(batch, "Level " + level,position.x - 15,position.y + 80);
     }
 
     //метод возвращает индекс текстуры
@@ -203,11 +231,12 @@ public abstract class GameCharacter implements MapElement {
                 if (weapon.getType() == Weapon.Type.MELEE ) {//если мы находимся в мили
                     tmp.set(target.position).sub(position);//построили вектор от нас в сторону мишени
                     gc.getSpecialEffectsController().setupSwordSwing(position.x,position.y,tmp.angle());//вконце у вектора запросили его угол
-                    target.takeDamage(this,weapon.generateDamage());//и цель получает урон
+                    target.takeDamage(this,damage = amountOfDamage(power,weapon.generateDamage()));//и цель получает урон
+                    increasedExperienceForDamage(damage);//начисление за урон и проверка на LevelUp тут же
                 }
                 if (weapon.getType() == Weapon.Type.RANGED && target != null) {//если в рэндж то кидает снаряд
-                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y,weapon.generateDamage());
-
+                    gc.getProjectilesController().setup(this, position.x, position.y, target.getPosition().x, target.getPosition().y,damage = amountOfDamage(power,weapon.generateDamage()));
+                    increasedExperienceForDamage(damage);//начисление за урон и проверка на LevelUp тут же
                 }
             }
         }
@@ -264,7 +293,7 @@ public abstract class GameCharacter implements MapElement {
     }
 
     public void onDeath() {
-        for (int i = 0; i < gc.getAllCharacters().size(); i++) {//проходимя повсем персонажам
+        for (int i = 0; i < gc.getAllCharacters().size(); i++) {//проходимся по всем персонажам
             GameCharacter gameCharacter = gc.getAllCharacters().get(i);
             if (gameCharacter.target == this) {//если кто то охотился но его убили
                 gameCharacter.resetAttackState();//другие теряют его мишень

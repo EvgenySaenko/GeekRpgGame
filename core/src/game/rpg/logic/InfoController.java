@@ -25,6 +25,15 @@ public class InfoController extends ObjectPool<InfoText> {
         infoText.setup(x + MathUtils.random(-20, 20), y+ MathUtils.random(-20, 20), stringBuilder, color);
     }
 
+    public void setupExperienceForKilling(float x, float y, Color color, String exp, int amount) {
+        InfoText infoText = getActiveElement();
+        stringBuilder.setLength(0);
+        stringBuilder.append(amount).append(exp);
+        infoText.setup(x + MathUtils.random(-20, 20), y+ MathUtils.random(-20, 20), stringBuilder, color);
+    }
+
+
+
     public void render(SpriteBatch batch, BitmapFont font) {
         for (int i = 0; i < activeList.size(); i++) {
             InfoText infoText = activeList.get(i);

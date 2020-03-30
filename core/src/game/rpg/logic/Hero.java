@@ -11,14 +11,21 @@ import game.rpg.screens.utils.Assets;
 
 public class Hero extends GameCharacter {
     private TextureRegion texturePointer;
+    private TextureRegion iconHeroes;
+    private TextureRegion iconHP;
+    private TextureRegion iconExp;
     private StringBuilder strBuilder;
     private boolean activePointer;
+    private int expForKilling;
     //private Sound sound;
 
     public Hero(GameController gc) {
-        super(gc, 200, 120.0f);
+        super(gc, 120.0f);
         this.textures = new TextureRegion(Assets.getInstance().getAtlas().findRegion("archerGOandFIRE")).split(64,64);
+        this.iconHeroes = new TextureRegion(Assets.getInstance().getAtlas().findRegion("iconHero"));
         this.texturePointer = Assets.getInstance().getAtlas().findRegion("pointerGreen");
+        this.iconHP = new TextureRegion(Assets.getInstance().getAtlas().findRegion("hpGreen"));
+        this.iconExp = new TextureRegion(Assets.getInstance().getAtlas().findRegion("exp"));
         //this.sound = Gdx.audio.newSound(Gdx.files.internal("audio/swordStrike.mp3"));
         this.activePointer = false;
         this.changePosition(100.0f, 100.0f);
@@ -28,15 +35,57 @@ public class Hero extends GameCharacter {
         this.weapon = gc.getWeaponController().getOneFromAnyPrototype();//даем герою оружие
     }
 
+    //пока почему - то иногда при убийстве моба добавляется 0 опыта
+    //а так все условия работают
+    // Одинаковый уровень с противником  ==> 110%
+    // Противник меньше вас на 2 и более уровней ==> 70% опыта
+    //Если уровень противника выше вашего на 2 и более ==> 130% опыта
+    public int increasedExperienceForKilling(int hp, int level){
+        expForKilling = 0;
+        if (this.level == level){//если уровни равны
+            expForKilling += (hp *1.1f);
+            System.out.println("check 1");
+        }
+        if (this.level > level){//если уровень героя больше уровня моба
+            if (this.level - level >= 2){//если мой уровень на 2 уровня больше монстра
+                expForKilling += (hp * 0.7f);
+                System.out.println("check 2");
+            }else {//в другом случает например всего лишь на 1 уровень герой больше моба
+                expForKilling += (hp *1.1f);//то получаем обычный коэффициент
+                System.out.println("check 1");
+            }
+        }
+        if (this.level < level){
+            if (level - this.level >= 2){//если уровень моба больше моего на 2
+                expForKilling  += (hp *1.3f);
+                System.out.println("check 3");
+            }else {//в другом случает например всего лишь на 1 уровень монстр больше героя
+                expForKilling += (hp *1.1f);//получаем обычный коэффициент
+                System.out.println("check 1");
+            }
+        }
+        experience += expForKilling;
+        levelUp();
+        System.out.println("Hero = > level " + this.level + " experience " + expForKilling);
+        return expForKilling;
+    }
+
 
 
     public void renderGUI(SpriteBatch batch, BitmapFont font) {
         strBuilder.setLength(0);
-        strBuilder.append("Class: ").append("Knight").append("\n");
-        strBuilder.append("HP: ").append(hp).append(" / ").append(hpMax).append("\n");
-        strBuilder.append("Coins: ").append(coins).append("\n");
-        strBuilder.append("Weapon: ").append(weapon.getTitle()).append(" [").append(weapon.getMinDamage()).append("-").append(weapon.getMaxDamage()).append("]\n");
-        font.draw(batch, strBuilder, 10, 710);
+        strBuilder.append(hp).append(" / ").append(hpMax).append("\n");
+        strBuilder.append(experience).append(" / ").append(Calculations.levelUp(this.level + 1)).append("\n");
+        strBuilder.append("Power: ").append(power).append("\n");
+//        strBuilder.append("Coins: ").append(coins).append("\n");
+//        strBuilder.append("Damage: ").append(damage).append("\n");
+//        strBuilder.append("Weapon: ").append(weapon.getTitle()).append(" [").append(weapon.getMinDamage()).append("-").append(weapon.getMaxDamage()).append("]\n");
+        batch.draw(iconHeroes,10,620);
+
+        batch.draw(iconHP,110,671,190 * ((float) hp / hpMax),14);
+        batch.draw(iconExp,110,652,190 * ((float) experience / Calculations.levelUp(this.level + 1)),14);
+        font20.draw(batch,String.valueOf(level),68,643);
+        font.draw(batch, strBuilder, 180, 684);
     }
 
 
@@ -46,6 +95,7 @@ public class Hero extends GameCharacter {
         coins = 0;
         hp = hpMax;
     }
+
 
     @Override
     public boolean takeDamage(GameCharacter attacker, int damage) {
