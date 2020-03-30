@@ -156,7 +156,7 @@ public class WorldRenderer {//отрисовщик
 
         //после уже рисуем гуи персонажа
         batch.begin();
-        gc.getHero().renderGUI(batch, font32);
+        gc.getHero().renderGUI(batch, font14);
         batch.end();
         //после всей отрисовки возвращаем камеру на место относительно героя
         ScreenManager.getInstance().pointCameraTo(pov);

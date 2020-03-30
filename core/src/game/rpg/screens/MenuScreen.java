@@ -26,7 +26,7 @@ public class MenuScreen extends AbstractScreen {
         super(batch);
         this.music = Gdx.audio.newMusic(Gdx.files.internal("audio/mysticalTheme.mp3"));
         this.music.setLooping(true);//зациклим музыку
-        this.music.play();//запустим музыку на экране меню
+        //this.music.play();//запустим музыку на экране меню
     }
 
     @Override
